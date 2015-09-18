@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="S7s-HA-J4R">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8154"/>
+    </dependencies>
+    <scenes>
+        <!--Second Controller-->
+        <scene sceneID="Fwp-8H-bcA">
+            <objects>
+                <viewController id="S7s-HA-J4R" customClass="FSESecondController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="Gu6-mD-Ur1"/>
+                        <viewControllerLayoutGuide type="bottom" id="3f7-Uc-bjy"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="Yvn-pG-cwl">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Second Controller" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NmF-Lc-abZ">
+                                <rect key="frame" x="91" y="120" width="139" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="NmF-Lc-abZ" firstAttribute="top" secondItem="Gu6-mD-Ur1" secondAttribute="bottom" constant="100" id="OGa-s7-lIA"/>
+                            <constraint firstAttribute="centerX" secondItem="NmF-Lc-abZ" secondAttribute="centerX" id="kqj-Yo-9N6"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="Second Controller" id="tMz-74-xcW"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="WuN-rB-FQD" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="189.86666666666667" y="357.83999999999997"/>
+        </scene>
+    </scenes>
+</document>

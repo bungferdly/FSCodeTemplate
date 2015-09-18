@@ -1,0 +1,136 @@
+//
+//  FSAPIParserManager.m
+//  Pods
+//
+//  Created by Ferdly Sethio on 9/12/15.
+//
+//
+
+#import "FSJSONParserManager.h"
+#import <Mantle/Mantle.h>
+
+@interface FSJSONParserManager()
+
+@property (strong, nonatomic) NSMutableArray *models;
+@property (strong, nonatomic) NSMutableDictionary *modelCaches;
+
+@end
+
+@implementation FSJSONParserManager
+
+- (void)didLoad
+{
+    self.models = [NSMutableArray array];
+    self.modelCaches = [NSMutableDictionary dictionary];
+}
+
+- (void)registerClass:(Class)cls forJSONKey:(NSString *)key withPrimaryKey:(NSString *)primaryKey
+{
+    [self.models addObject:@[cls, key, primaryKey ?: @""]];
+}
+
+- (id)parseJSON:(id)data
+{
+    id mData = data;
+    if ([data isKindOfClass:[NSArray class]]) {
+        mData = [@[] mutableCopy];
+        for (id subData in data) {
+            [mData addObject:[self parseJSON:subData]];
+        }
+    } else if ([data isKindOfClass:[NSDictionary class]]) {
+        mData = [self parseDictionary:data];
+    }
+    return mData;
+}
+
+- (id)parseDictionary:(NSDictionary *)data
+{
+    NSMutableDictionary *mData = [@{} mutableCopy];
+    for (NSString *key in data.allKeys) {
+        [mData setObject:[self parseJSON:data[key]] forKey:key];
+    }
+    for (NSArray *model in self.models) {
+        NSString *key = model[1];
+        if ([data objectForKey:key]) {
+            Class cls = model[0];
+            MTLModel<MTLJSONSerializing> *model = [MTLJSONAdapter modelOfClass:cls fromJSONDictionary:mData error:nil];
+            return [self cacheWithAppendModel:model];
+        }
+    }
+    return mData;
+}
+
+- (id)cacheForObject:(id)object
+{
+    for (NSArray *model in self.models) {
+        Class cls = model[0];
+        
+        if ([object isKindOfClass:cls]) {
+            NSString *primaryKey = model[2];
+            NSString *clsString = NSStringFromClass(cls);
+            if (!primaryKey.length) {
+                return object;
+            }
+            NSMutableDictionary *modelCache = self.modelCaches[clsString];
+            if (!modelCache) {
+                modelCache = [NSMutableDictionary dictionary];
+                [self.modelCaches setObject:modelCache forKey:clsString];
+            }
+            id key = [object valueForKey:primaryKey];
+            MTLModel *cache = [modelCache objectForKey:key];
+            if (!cache) {
+                [modelCache setObject:object forKey:key];
+                cache = object;
+            }
+            return cache;
+        }
+    }
+    return object;
+}
+
+- (id)cacheWithAppendModel:(id)object
+{
+    MTLModel<MTLJSONSerializing> *cache = [self cacheForObject:object];
+    if (cache != object) {
+        NSArray *keys = [[cache class] JSONKeyPathsByPropertyKey].allKeys;
+        for (NSString *key in keys) {
+            id val = [object valueForKey:key];
+            if (val && ![val isKindOfClass:[NSNull class]]) {
+                [cache mergeValueForKey:key fromModel:object];
+            }
+        }
+    }
+    return cache;
+}
+
+- (void)clearCache
+{
+    [self.modelCaches removeAllObjects];
+}
+
+- (id)parseHierarchicalObject:(id)data
+{
+    id mData = data;
+    if ([data isKindOfClass:[NSArray class]]) {
+        mData = [@[] mutableCopy];
+        for (id subData in data) {
+            [mData addObject:[self parseHierarchicalObject:subData]];
+        }
+    } else if ([data respondsToSelector:@selector(dictionaryValue)]) {
+        mData = [self parseModel:[data dictionaryValue]];
+    } else if ([data isKindOfClass:[NSDictionary class]]) {
+        mData = [self parseModel:data];
+    }
+    return mData;
+}
+
+- (id)parseModel:(id)data
+{
+    NSMutableDictionary *mData = [data mutableCopy];
+    for (NSString *key in mData.allKeys) {
+        [mData setObject:[self parseHierarchicalObject:[mData valueForKey:key]] forKey:key];
+    }
+    return mData;
+}
+
+@end

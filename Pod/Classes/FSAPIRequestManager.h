@@ -7,7 +7,6 @@
 //
 
 #import "FSManager.h"
-#import <AFNetworking/AFNetworking.h>
 
 typedef enum : NSUInteger {
     FSRequestMethodGET,
@@ -17,21 +16,24 @@ typedef enum : NSUInteger {
 } FSRequestMethod;
 
 typedef enum : NSInteger {
-    FSRequestCachePolicyNone = -1,
-    FSRequestCachePolicySaveToMemory,
-    FSRequestCachePolicySaveToDisk
+    FSRequestCachePolicyNetworkOnly = -1,
+    FSRequestCachePolicyCacheThenNetwork,
+    FSRequestCachePolicyCacheOnly
 } FSRequestCachePolicy;
+
+@protocol AFMultipartFormData;
 
 @interface FSRequest : NSObject
 
-@property (strong, nonatomic) NSString *cachePath;
 @property (strong, nonatomic) NSString *path;
 @property (strong, nonatomic) NSDictionary *parameters;
 @property (strong, nonatomic) id body;
-@property (strong, nonatomic) NSString *hudTitle;
-@property (strong, nonatomic) NSString *hudSuccessTitle;
 @property (assign, nonatomic) FSRequestMethod method;
 @property (assign, nonatomic) FSRequestCachePolicy cachePolicy;
+@property (assign, nonatomic) BOOL errorHidden;
+@property (strong, nonatomic) NSString *hudTitle;
+@property (strong, nonatomic) NSString *hudSuccessTitle;
+@property (strong, nonatomic) NSDictionary *httpHeaderFields;
 @property (strong, nonatomic) void (^constructingBodyBlock)(id <AFMultipartFormData> formData);
 @property (assign, nonatomic) NSInteger retryCount;
 
@@ -39,21 +41,30 @@ typedef enum : NSInteger {
 
 @interface FSResponse : NSObject
 
-@property (readonly, nonatomic) NSString *cacheKey;
 @property (readonly, nonatomic) BOOL fromCache;
-@property (readonly, nonatomic) NSObject *object;
-@property (readonly, nonatomic) NSMutableArray *objects;
+@property (readonly, nonatomic) id object;
+@property (readonly, nonatomic) NSMutableDictionary *dictionaryObject;
+@property (readonly, nonatomic) NSMutableArray *arrayObject;
 @property (readonly, nonatomic) NSString *errorMessage;
+
+- (void)save;
 
 @end
 
 @interface FSAPIRequestManager : FSManager
 
 @property (strong, nonatomic) NSString *baseURL;
-@property (strong, nonatomic) NSString *accessTokenComplexKey;
+@property (strong, nonatomic) NSString *resultCompexKey;
 @property (strong, nonatomic) NSString *errorMessageComplexKey;
 
 - (void)startRequest:(FSRequest *)request withCompletion:(void(^)(FSResponse *response))completion;
-- (void)clearCache:(BOOL)includeDiskCache;
+- (void)clearCache;
+
+@end
+
+@protocol FSAPIRequestManagerDelegate <NSObject>
+
+- (BOOL)shouldStartRequest:(FSRequest *)request withCompletion:(void(^)(FSResponse *response))completion;
+- (void)didFinishRequest:(FSRequest *)request withResponse:(FSResponse *)response;
 
 @end

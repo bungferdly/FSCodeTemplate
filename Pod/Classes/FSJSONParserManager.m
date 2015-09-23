@@ -7,6 +7,7 @@
 //
 
 #import "FSJSONParserManager.h"
+#import "FSCodeTemplate.h"
 #import <Mantle/Mantle.h>
 
 @interface FSJSONParserManager()
@@ -53,8 +54,16 @@
         NSString *key = model[1];
         if ([data objectForKey:key]) {
             Class cls = model[0];
-            MTLModel<MTLJSONSerializing> *model = [MTLJSONAdapter modelOfClass:cls fromJSONDictionary:mData error:nil];
-            return [self cacheWithAppendModel:model];
+            
+            MTLModel<MTLJSONSerializing> *modelObject = [MTLJSONAdapter modelOfClass:cls fromJSONDictionary:mData error:nil];
+            if (!modelObject) {
+                FSLog(@"Failed to create object model %@. Check if the class has all the properties registered in its JSONKeyPathsByPropertyKey.", cls);
+                return mData;
+            } else if ([model[2] length] && [modelObject valueForKey:model[2]]) {
+                return [self cacheWithAppendModel:modelObject];
+            } else {
+                return modelObject;
+            }
         }
     }
     return mData;

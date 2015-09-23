@@ -10,17 +10,12 @@
 #import "FSKeychainManager.h"
 #import "FSJSONParserManager.h"
 #import <Mantle/Mantle.h>
-#import <Mantle/NSDictionary+MTLJSONKeyPath.h>
 #import <SVProgressHUD/SVProgressHUD.h>
 #import <TMCache/TMCache.h>
 #import <NSURL+QueryDictionary/NSURL+QueryDictionary.h>
+#import <AFNetworking/AFNetworking.h>
+#import "FSCodeTemplate.h"
 
-#ifdef DEBUG
-    #define FSLog(...) NSLog(@"%s(%p) %@", __PRETTY_FUNCTION__, self, [NSString stringWithFormat:__VA_ARGS__])
-#else
-    #define FSLog(...) ((void)0)
-#endif
-#define kFSAPIRequestAccessToken @"kFSAPIRequestAccessToken"
 #define kFSAPIRequestIndefiniteRequests @"kFSAPIRequestIndefiniteRequests"
 #define kFSAPIRequestCacheName @"kFSAPIRequestCache"
 
@@ -31,6 +26,12 @@
                                                     parameters:(id)parameters
                                                        success:(void (^)(AFHTTPRequestOperation *operation, id responseObject))success
                                                        failure:(void (^)(AFHTTPRequestOperation *operation, NSError *error))failure;
+
+@end
+
+@interface NSDictionary (FS)
+
+- (id)fs_valueForJSONComplexKey:(NSString *)JSONComplexKey;
 
 @end
 
@@ -46,8 +47,7 @@
 
 @property (strong, nonatomic) NSString *cacheKey;
 @property (assign, nonatomic) BOOL fromCache;
-@property (strong, nonatomic) NSObject *object;
-@property (strong, nonatomic) NSMutableArray *objects;
+@property (strong, nonatomic) id object;
 @property (strong, nonatomic) NSString *errorMessage;
 
 @end
@@ -57,7 +57,7 @@
 @property (strong, nonatomic) AFHTTPRequestOperationManager *httpRequest;
 @property (strong, nonatomic) TMDiskCache *diskCache;
 @property (strong, nonatomic) NSMutableArray *requests;
-@property (strong, nonatomic) NSMutableDictionary *responses;
+@property (strong, nonatomic) NSMapTable *responses;
 
 @end
 
@@ -66,7 +66,7 @@
 - (void)didLoad
 {
     self.requests = [NSMutableArray array];
-    self.accessTokenComplexKey = @"access_token";
+    self.responses = [NSMapTable strongToWeakObjectsMapTable];
     self.errorMessageComplexKey = @"error";
     self.diskCache = [[TMDiskCache alloc] initWithName:kFSAPIRequestCacheName];
     
@@ -76,7 +76,7 @@
         }
     }];
     [[AFNetworkReachabilityManager sharedManager] startMonitoring];
-    [self loadIndefiniteRequests];
+    [self performSelector:@selector(loadIndefiniteRequests) withObject:nil afterDelay:0];
 }
 
 - (void)startRequest:(FSRequest *)object withCompletion:(void (^)(FSResponse *))completion
@@ -88,17 +88,39 @@
         self.httpRequest = [[AFHTTPRequestOperationManager alloc] initWithBaseURL:[NSURL URLWithString:self.baseURL]];
     }
     
+    BOOL shouldStartRequest = YES;
+    for (id delegate in self.delegates) {
+        if ([delegate respondsToSelector:@selector(shouldStartRequest:withCompletion:)]) {
+            shouldStartRequest &= [delegate shouldStartRequest:object withCompletion:completion];
+        }
+    }
+    if (!shouldStartRequest) {
+        return;
+    }
+    
+    if (object.method != FSRequestMethodGET) {
+        object.cachePolicy = FSRequestCachePolicyNetworkOnly;
+    }
+    
     //setup fullpath
-    NSString *fullPath = object.path ?: object.cachePath;
-    
+    NSString *fullPath = object.path;
     NSParameterAssert(fullPath);
-    
     if (object.parameters) {
         fullPath = [NSString stringWithFormat:@"%@?%@", fullPath, [object.parameters uq_URLQueryString]];
     }
     
-    if (object.method == FSRequestMethodGET && object.cachePolicy != FSRequestCachePolicyNone && completion) {
-        [self loadResponseWithPath:fullPath completion:completion];
+    //load response from cache
+    if (object.cachePolicy != FSRequestCachePolicyNetworkOnly && completion) {
+        [self loadResponseWithPath:fullPath completion:^(FSResponse *response) {
+            if (response || object.cachePolicy == FSRequestCachePolicyCacheOnly) {
+                completion(response);
+            }
+        }];
+    }
+    
+    //do not proceed further if offline request
+    if (object.cachePolicy == FSRequestCachePolicyCacheOnly) {
+        return;
     }
     
     //setup response block
@@ -106,28 +128,15 @@
         FSResponse *response = [[FSResponse alloc] init];
         response.cacheKey = fullPath;
         
-        if ([data isKindOfClass:[NSDictionary class]]) {
-            response.errorMessage = [(NSDictionary *)data mtl_valueForJSONKeyPath:self.errorMessageComplexKey success:nil error:nil];
+        if ([data isKindOfClass:[NSDictionary class]] && self.errorMessageComplexKey.length) {
+            response.errorMessage = [(NSDictionary *)data fs_valueForJSONComplexKey:self.errorMessageComplexKey];
         } else {
             response.errorMessage = nil;
         }
         if (!response.errorMessage && data) {
-            if ([data isKindOfClass:[NSDictionary class]] && self.accessTokenComplexKey) {
-                NSString *accessToken = [data mtl_valueForJSONKeyPath:self.accessTokenComplexKey success:nil error:nil];
-                if (accessToken) {
-                    FSKeychainSave(accessToken, kFSAPIRequestAccessToken);
-                }
-            }
-            if ([data isKindOfClass:[NSArray class]]) {
-                response.objects = data;
-            } else {
-                response.object = data;
-            }
+            response.object = data;
             if (save) {
-                if (object.cachePolicy != FSRequestCachePolicyNone) {
-                    [self.responses setObject:response forKey:fullPath];
-                }
-                if (object.cachePolicy == FSRequestCachePolicySaveToDisk) {
+                if (object.cachePolicy != FSRequestCachePolicyNetworkOnly) {
                     [self saveResponse:response];
                 }
             }
@@ -144,8 +153,15 @@
         FSLog(@"\nAPI : %@\nResponse : %@\n\n", fullPath, data);
         
         data = [[FSJSONParserManager sharedManager] parseJSON:data];
+        id response = responseBlock(data, object.method == FSRequestMethodGET);
+        
+        for (id delegate in self.delegates) {
+            if ([delegate respondsToSelector:@selector(didFinishRequest:withResponse:)]) {
+                [delegate didFinishRequest:object withResponse:response];
+            }
+        }
         if (completion) {
-            completion(responseBlock(data, object.method == FSRequestMethodGET));
+            completion(response);
         }
     };
     
@@ -173,6 +189,13 @@
         if (object.retryCount < 0 && (error.code <= 0 || error.code == 408)) {
             [self.requests addObject:object];
         }
+        
+        for (id delegate in self.delegates) {
+            if ([delegate respondsToSelector:@selector(didFinishRequest:withResponse:)]) {
+                [delegate didFinishRequest:object withResponse:response];
+            }
+        }
+        
         if (completion) {
             completion(response);
         }
@@ -181,19 +204,9 @@
     [self cancelIdenticalRequest:object];
     [self addRequest:object];
     
-    //process offline request
-    if (object.cachePath) {
-        if (object.method == FSRequestMethodPOST) {
-            responseBlock(object.body, YES);
-            successBlock(nil, @"success");
-        }
-        return;
-    }
-    
-    //setup accesstoken
-    NSString *accessToken = FSKeychainLoad(kFSAPIRequestAccessToken);
-    if (accessToken) {
-        [self.httpRequest.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", accessToken] forHTTPHeaderField:@"Authorization"];
+    //setup headers
+    for (NSString *key in object.httpHeaderFields) {
+        [self.httpRequest.requestSerializer setValue:object.httpHeaderFields[key] forHTTPHeaderField:key];
     }
     
     //setup method
@@ -224,8 +237,8 @@
         }
     }
     if (req.response.errorMessage) {
-        if (req.retryCount >= 0) {
-            [SVProgressHUD showErrorWithStatus:NSLocalizedString(req.response.errorMessage, nil) maskType:SVProgressHUDMaskTypeBlack];
+        if (req.retryCount >= 0 && !req.errorHidden) {
+            [SVProgressHUD showErrorWithStatus:NSLocalizedString([req.response.errorMessage description], nil) maskType:SVProgressHUDMaskTypeBlack];
         }
         req.response = nil;
         return;
@@ -239,12 +252,10 @@
     req.response = nil;
 }
 
-- (void)clearCache:(BOOL)includeDiskCache
+- (void)clearCache
 {
     [self.responses removeAllObjects];
-    if (includeDiskCache) {
-        [self.diskCache removeAllObjects];
-    }
+    [self.diskCache removeAllObjects];
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application
@@ -340,11 +351,12 @@
 
 - (void)saveResponse:(FSResponse *)response
 {
-    id object = response.objects ?: response.object;
-    if (!object) {
+    if (!response.object) {
         return;
     }
-    id JSON = [[FSJSONParserManager sharedManager] parseHierarchicalObject:object];
+    [self.responses setObject:response forKey:response.cacheKey];
+    
+    id JSON = [[FSJSONParserManager sharedManager] parseHierarchicalObject:response.object];
     if (JSON) {
         [self.diskCache setObject:JSON forKey:response.cacheKey];
     }
@@ -352,23 +364,20 @@
 
 - (void)loadResponseWithPath:(NSString *)path completion:(void(^)(FSResponse *response))completion
 {
-    if (self.responses[path]) {
-        completion([self cacheResponseFromResponse:self.responses[path]]);
+    if ([self.responses objectForKey:path]) {
+        completion([self cacheResponseFromResponse:[self.responses objectForKey:path]]);
     }else {
         [self.diskCache objectForKey:path block:^(TMDiskCache *cache, NSString *key, id<NSCoding> object, NSURL *fileURL) {
             if (object) {
                 FSResponse *response = [[FSResponse alloc] init];
                 response.cacheKey = path;
-                if (!self.responses[path]) {
+                if (![self.responses objectForKey:path]) {
                     [self.responses setObject:response forKey:path];
                 }
-                id result = [[FSJSONParserManager sharedManager] parseJSON:object];
-                if ([result isKindOfClass:[NSArray class]]) {
-                    response.objects = result;
-                } else {
-                    response.object = result;
-                }
+                response.object = [[FSJSONParserManager sharedManager] parseJSON:object];
                 completion([self cacheResponseFromResponse:response]);
+            } else {
+                completion(nil);
             }
         }];
     }
@@ -379,7 +388,6 @@
     FSResponse *cacheResponse = [[FSResponse alloc] init];
     cacheResponse.cacheKey = response.cacheKey;
     cacheResponse.object = response.object;
-    cacheResponse.objects = response.objects;
     cacheResponse.fromCache = YES;
     return cacheResponse;
 }
@@ -391,5 +399,38 @@
 @end
 
 @implementation FSResponse
+
+- (NSMutableDictionary *)dictionaryObject
+{
+    return [self.object isKindOfClass:[NSMutableDictionary class]] ? self.object : nil;
+}
+
+- (NSMutableArray *)arrayObject
+{
+    return [self.object isKindOfClass:[NSArray class]] ? self.object : nil;
+}
+
+- (void)save
+{
+    [[FSAPIRequestManager sharedManager] saveResponse:self];
+}
+
+@end
+
+@implementation NSDictionary (FS)
+
+- (id)fs_valueForJSONComplexKey:(NSString *)JSONComplexKey
+{
+    NSArray *components = [JSONComplexKey componentsSeparatedByString:@"."];
+    id result = self;
+    for (NSString *component in components) {
+        if (result == nil || result == NSNull.null) break;
+        if (![result isKindOfClass:NSDictionary.class]) {
+            return nil;
+        }
+        result = result[component];
+    }
+    return result;
+}
 
 @end

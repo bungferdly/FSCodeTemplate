@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface FSSegmentedControl : UISegmentedControl
+@interface FSSegmentedControl : UIControl
 
 @property (strong, nonatomic) IBOutletCollection(UIControl) NSArray *segments;
 @property (strong, nonatomic) IBOutlet NSLayoutConstraint *stickerLeftLC;

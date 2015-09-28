@@ -37,12 +37,9 @@
     NSInteger index = roundf(value);
     if (index >= 0 && index < self.segments.count) {
         for (int i = 0 ; i < self.segments.count ; i++) {
-            id segment = self.segments[i];
-            if ([segment isKindOfClass:[UIButton class]]) {
-                [self.segments[i] setSelected:i == index];
-            }
+            [self.segments[i] setSelected:i == index];
         }
-        self.stickerLeftLC.constant = value * [self.segments[index] frame].size.width;
+        self.stickerLeftLC.constant = (value / self.segments.count) * self.frame.size.width;
     }
 }
 

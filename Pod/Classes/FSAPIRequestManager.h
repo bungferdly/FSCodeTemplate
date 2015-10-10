@@ -58,13 +58,17 @@ typedef enum : NSInteger {
 @property (strong, nonatomic) NSString *errorMessageComplexKey;
 
 - (void)startRequest:(FSRequest *)request withCompletion:(void(^)(FSResponse *response))completion;
+- (void)cancelRequest:(FSRequest *)request;
+- (void)cancelAllRequests;
 - (void)clearCache;
 
 @end
 
 @protocol FSAPIRequestManagerDelegate <NSObject>
 
-- (BOOL)shouldStartRequest:(FSRequest *)request withCompletion:(void(^)(FSResponse *response))completion;
-- (void)didFinishRequest:(FSRequest *)request withResponse:(FSResponse *)response;
+@optional
+- (BOOL)requestManagerRequestShouldDelayRequest:(FSRequest *)request;
+- (void)requestManagerWillStartRequest:(FSRequest *)request fromCache:(BOOL)fromCache;
+- (void)requestManagerdidFinishRequest:(FSRequest *)request withResponse:(FSResponse *)response;
 
 @end

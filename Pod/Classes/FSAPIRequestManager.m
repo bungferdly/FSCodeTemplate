@@ -40,6 +40,7 @@
 @property (strong, nonatomic) AFHTTPRequestOperation *operation;
 @property (strong, nonatomic) FSResponse *response;
 @property (assign, nonatomic) NSInteger retrying;
+@property (strong, nonatomic) void (^completion)(FSResponse *);
 
 @end
 
@@ -88,16 +89,6 @@
         self.httpRequest = [[AFHTTPRequestOperationManager alloc] initWithBaseURL:[NSURL URLWithString:self.baseURL]];
     }
     
-    BOOL shouldStartRequest = YES;
-    for (id delegate in self.delegates) {
-        if ([delegate respondsToSelector:@selector(shouldStartRequest:withCompletion:)]) {
-            shouldStartRequest &= [delegate shouldStartRequest:object withCompletion:completion];
-        }
-    }
-    if (!shouldStartRequest) {
-        return;
-    }
-    
     if (object.method != FSRequestMethodGET) {
         object.cachePolicy = FSRequestCachePolicyNetworkOnly;
     }
@@ -111,6 +102,11 @@
     
     //load response from cache
     if (object.cachePolicy != FSRequestCachePolicyNetworkOnly && completion) {
+        for (id delegate in self.delegates) {
+            if ([delegate respondsToSelector:@selector(requestManagerWillStartRequest:fromCache:)]) {
+                [delegate requestManagerWillStartRequest:object fromCache:YES];
+            }
+        }
         [self loadResponseWithPath:fullPath completion:^(FSResponse *response) {
             if (response || object.cachePolicy == FSRequestCachePolicyCacheOnly) {
                 completion(response);
@@ -156,8 +152,8 @@
         id response = responseBlock(data, object.method == FSRequestMethodGET);
         
         for (id delegate in self.delegates) {
-            if ([delegate respondsToSelector:@selector(didFinishRequest:withResponse:)]) {
-                [delegate didFinishRequest:object withResponse:response];
+            if ([delegate respondsToSelector:@selector(requestManagerdidFinishRequest:withResponse:)]) {
+                [delegate requestManagerdidFinishRequest:object withResponse:response];
             }
         }
         if (completion) {
@@ -191,8 +187,8 @@
         }
         
         for (id delegate in self.delegates) {
-            if ([delegate respondsToSelector:@selector(didFinishRequest:withResponse:)]) {
-                [delegate didFinishRequest:object withResponse:response];
+            if ([delegate respondsToSelector:@selector(requestManagerdidFinishRequest:withResponse:)]) {
+                [delegate requestManagerdidFinishRequest:object withResponse:response];
             }
         }
         
@@ -201,7 +197,28 @@
         }
     };
     
-    [self cancelIdenticalRequest:object];
+    //handle refresh token
+    if (object.retrying < 30) {
+        BOOL shouldRetryingRequest = NO;
+        object.completion = completion;
+        for (id delegate in self.delegates) {
+            if ([delegate respondsToSelector:@selector(requestManagerRequestShouldDelayRequest:)]) {
+                shouldRetryingRequest &= [delegate requestManagerRequestShouldDelayRequest:object];
+            }
+        }
+        if (shouldRetryingRequest) {
+            [self performSelector:@selector(restartRequest:) withObject:object afterDelay:1];
+            return;
+        }
+    }
+    
+    for (id delegate in self.delegates) {
+        if ([delegate respondsToSelector:@selector(requestManagerWillStartRequest:fromCache:)]) {
+            [delegate requestManagerWillStartRequest:object fromCache:NO];
+        }
+    }
+    
+    [self cancelRequest:object];
     [self addRequest:object];
     
     //setup headers
@@ -226,6 +243,12 @@
         object.operation = [self.httpRequest HTTPRequestOperationWithHTTPMethod:method URLString:fullPath parameters:object.body success:successBlock failure:failedBlock];
         [self.httpRequest.operationQueue addOperation:object.operation];
     }
+}
+
+- (void)restartRequest:(FSRequest *)request
+{
+    request.retrying++;
+    [self startRequest:request withCompletion:request.completion];
 }
 
 - (void)calculateHUD:(FSRequest *)req
@@ -283,7 +306,7 @@
     [self performSelector:@selector(calculateHUD:) withObject:request afterDelay:0];
 }
 
-- (void)cancelIdenticalRequest:(FSRequest *)request
+- (void)cancelRequest:(FSRequest *)request
 {
     NSUInteger i = 0;
     while (i < self.requests.count) {
@@ -294,6 +317,15 @@
         } else {
             i++;
         }
+    }
+}
+
+- (void)cancelAllRequests
+{
+    while (self.requests.count) {
+        FSRequest *request = self.requests[0];
+        [self.requests removeObject:request];
+        [request.operation cancel];
     }
 }
 

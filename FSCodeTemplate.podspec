@@ -43,7 +43,7 @@ For now it only consist of :
   # s.frameworks = 'UIKit', 'MapKit'
   s.dependency 'AFNetworking'
   s.dependency 'SVProgressHUD'
-  s.dependency 'Mantle'
+  s.dependency 'JSONModel'
   s.dependency 'NSURL+QueryDictionary'
   s.dependency 'FXKeychain'
   s.dependency 'TMCache'

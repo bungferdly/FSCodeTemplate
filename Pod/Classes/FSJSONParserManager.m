@@ -8,7 +8,7 @@
 
 #import "FSJSONParserManager.h"
 #import "FSCodeTemplate.h"
-#import <Mantle/Mantle.h>
+#import <JSONModel/JSONModel.h>
 
 @interface FSJSONParserManager()
 
@@ -55,7 +55,7 @@
         if ([data objectForKey:key]) {
             Class cls = model[0];
             
-            MTLModel<MTLJSONSerializing> *modelObject = [MTLJSONAdapter modelOfClass:cls fromJSONDictionary:mData error:nil];
+            JSONModel *modelObject = [[cls alloc] initWithDictionary:mData error:nil];
             if (!modelObject) {
                 FSLog(@"Failed to create object model %@. Check if the class has all the properties registered in its JSONKeyPathsByPropertyKey.", cls);
                 return mData;
@@ -86,7 +86,7 @@
                 [self.modelCaches setObject:modelCache forKey:clsString];
             }
             id key = [object valueForKey:primaryKey];
-            MTLModel *cache = [modelCache objectForKey:key];
+            JSONModel *cache = [modelCache objectForKey:key];
             if (!cache) {
                 [modelCache setObject:object forKey:key];
                 cache = object;
@@ -99,15 +99,9 @@
 
 - (id)cacheWithAppendModel:(id)object
 {
-    MTLModel<MTLJSONSerializing> *cache = [self cacheForObject:object];
+    JSONModel *cache = [self cacheForObject:object];
     if (cache != object) {
-        NSArray *keys = [[cache class] JSONKeyPathsByPropertyKey].allKeys;
-        for (NSString *key in keys) {
-            id val = [object valueForKey:key];
-            if (val && ![val isKindOfClass:[NSNull class]]) {
-                [cache mergeValueForKey:key fromModel:object];
-            }
-        }
+        [cache mergeFromDictionary:[object toDictionary] useKeyMapping:NO];
     }
     return cache;
 }
@@ -125,8 +119,8 @@
         for (id subData in data) {
             [mData addObject:[self parseHierarchicalObject:subData]];
         }
-    } else if ([data respondsToSelector:@selector(dictionaryValue)]) {
-        mData = [self parseModel:[data dictionaryValue]];
+    } else if ([data respondsToSelector:@selector(toDictionary)]) {
+        mData = [self parseModel:[data toDictionary]];
     } else if ([data isKindOfClass:[NSDictionary class]]) {
         mData = [self parseModel:data];
     }

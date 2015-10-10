@@ -22,5 +22,6 @@
 #import "FSKeychainManager.h"
 #import "FSSegmentedControl.h"
 #import "UIViewController+FS.h"
+#import "FSFormController.h"
 
 #endif

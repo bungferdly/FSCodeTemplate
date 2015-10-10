@@ -9,7 +9,6 @@
 #import "FSAPIRequestManager.h"
 #import "FSKeychainManager.h"
 #import "FSJSONParserManager.h"
-#import <Mantle/Mantle.h>
 #import <SVProgressHUD/SVProgressHUD.h>
 #import <TMCache/TMCache.h>
 #import <NSURL+QueryDictionary/NSURL+QueryDictionary.h>

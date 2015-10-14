@@ -19,9 +19,12 @@
 #import "FSManager.h"
 #import "FSAPIRequestManager.h"
 #import "FSJSONParserManager.h"
+#import "FSResponderManager.h"
 #import "FSKeychainManager.h"
 #import "FSSegmentedControl.h"
 #import "UIViewController+FS.h"
-#import "FSFormController.h"
+#import "UIView+FS.h"
+#import "UIAlertController+FS.h"
+#import "FSPageController.h"
 
 #endif

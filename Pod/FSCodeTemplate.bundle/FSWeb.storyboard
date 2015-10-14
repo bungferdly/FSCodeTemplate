@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="8191" systemVersion="15A284" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="XtH-W5-eQ8">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8154"/>
+    </dependencies>
+    <scenes>
+        <!--Title-->
+        <scene sceneID="bfq-zC-DmM">
+            <objects>
+                <viewController id="XtH-W5-eQ8" customClass="FSWebController" sceneMemberID="viewController">
+                    <webView key="view" contentMode="scaleToFill" id="JyT-zG-QTU">
+                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <animations/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </webView>
+                    <navigationItem key="navigationItem" title="Title" id="m3r-7Y-Rwl">
+                        <barButtonItem key="leftBarButtonItem" title="Close" id="3Bt-dv-f2y">
+                            <connections>
+                                <action selector="close" destination="XtH-W5-eQ8" id="h6S-cu-agF"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" translucent="NO" prompted="NO"/>
+                    <connections>
+                        <outlet property="webView" destination="JyT-zG-QTU" id="IOH-ed-bC6"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="6no-Jd-uCq" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="232" y="364"/>
+        </scene>
+    </scenes>
+</document>

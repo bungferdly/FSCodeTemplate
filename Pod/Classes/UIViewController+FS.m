@@ -12,11 +12,16 @@
 
 + (instancetype)fs_newController
 {
+    return [self fs_newControllerInBundle:nil];
+}
+
++ (instancetype)fs_newControllerInBundle:(NSBundle *)bundle
+{
     NSString *className = NSStringFromClass([self class]);
     NSString *storyboardName = [className stringByReplacingOccurrencesOfString:@"Controller" withString:@""];
     UIViewController *instance = nil;
     @try {
-        instance = [[UIStoryboard storyboardWithName:storyboardName bundle:nil] instantiateInitialViewController];
+        instance = [[UIStoryboard storyboardWithName:storyboardName bundle:bundle] instantiateInitialViewController];
     }
     @catch (NSException *exception) {
         

@@ -21,6 +21,11 @@ typedef enum : NSInteger {
     FSRequestCachePolicyCacheOnly
 } FSRequestCachePolicy;
 
+typedef enum : NSUInteger {
+    FSContentTypeJSON,
+    FSContentTypeForm
+} FSContentType;
+
 @protocol AFMultipartFormData;
 
 @interface FSRequest : NSObject
@@ -31,9 +36,10 @@ typedef enum : NSInteger {
 @property (assign, nonatomic) FSRequestMethod method;
 @property (assign, nonatomic) FSRequestCachePolicy cachePolicy;
 @property (assign, nonatomic) BOOL errorHidden;
+@property (assign, nonatomic) FSContentType contentType;
 @property (strong, nonatomic) NSString *hudTitle;
 @property (strong, nonatomic) NSString *hudSuccessTitle;
-@property (strong, nonatomic) NSDictionary *httpHeaderFields;
+@property (readonly, nonatomic) NSMutableDictionary *httpHeaderFields;
 @property (strong, nonatomic) void (^constructingBodyBlock)(id <AFMultipartFormData> formData);
 @property (assign, nonatomic) NSInteger retryCount;
 
@@ -45,7 +51,7 @@ typedef enum : NSInteger {
 @property (readonly, nonatomic) id object;
 @property (readonly, nonatomic) NSMutableDictionary *dictionaryObject;
 @property (readonly, nonatomic) NSMutableArray *arrayObject;
-@property (readonly, nonatomic) NSString *errorMessage;
+@property (strong, nonatomic) NSError *error;
 
 - (void)save;
 

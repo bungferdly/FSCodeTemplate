@@ -7,15 +7,31 @@
 //
 
 #import "FSSegmentedControl.h"
+#import "UIView+FS.h"
+
+@interface FSSegmentedControl ()
+
+@property (strong, nonatomic) NSMutableArray<__kindof UIControl *> *segments;
+
+@end
 
 @implementation FSSegmentedControl
 
 - (void)awakeFromNib
 {
     [super awakeFromNib];
-    for (UIButton *segment in self.segments) {
-        [segment addTarget:self action:@selector(buttonDidSelect:) forControlEvents:UIControlEventTouchUpInside];
-    }
+    
+    self.segments = [NSMutableArray array];
+    [self subviewsMapping:^(UIView *view, BOOL *stop) {
+        if ([view isKindOfClass:[UIControl class]]) {
+            [self.segments addObject:(UIControl *)view];
+            [(UIControl *)view addTarget:self action:@selector(buttonDidSelect:) forControlEvents:UIControlEventTouchUpInside];
+        }
+    }];
+    [self.segments sortUsingComparator:^NSComparisonResult(UIView *  _Nonnull obj1, UIView *  _Nonnull obj2) {
+        return CGRectGetMinX(obj1.frame) < CGRectGetMinX(obj2.frame) ? NSOrderedAscending : NSOrderedDescending;
+    }];
+    
     self.value = _value;
 }
 

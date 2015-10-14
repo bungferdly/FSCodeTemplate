@@ -57,7 +57,7 @@
             
             JSONModel *modelObject = [[cls alloc] initWithDictionary:mData error:nil];
             if (!modelObject) {
-                FSLog(@"Failed to create object model %@. Check if the class has all the properties registered in its JSONKeyPathsByPropertyKey.", cls);
+                FSLog(@"Failed to create object model %@.", cls);
                 return mData;
             } else if ([model[2] length] && [modelObject valueForKey:model[2]]) {
                 return [self cacheWithAppendModel:modelObject];

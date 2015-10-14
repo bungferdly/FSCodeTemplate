@@ -10,7 +10,6 @@
 
 @interface FSSegmentedControl : UIControl
 
-@property (strong, nonatomic) IBOutletCollection(UIControl) NSArray *segments;
 @property (strong, nonatomic) IBOutlet NSLayoutConstraint *stickerLeftLC;
 @property (strong, nonatomic) IBOutlet UIView *stickerView;
 @property (assign, nonatomic) CGFloat value;

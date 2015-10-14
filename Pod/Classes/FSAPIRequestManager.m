@@ -14,6 +14,7 @@
 #import <NSURL+QueryDictionary/NSURL+QueryDictionary.h>
 #import <AFNetworking/AFNetworking.h>
 #import "FSCodeTemplate.h"
+#import "FSWebController.h"
 
 #define kFSAPIRequestIndefiniteRequests @"kFSAPIRequestIndefiniteRequests"
 #define kFSAPIRequestCacheName @"kFSAPIRequestCache"
@@ -40,6 +41,7 @@
 @property (strong, nonatomic) FSResponse *response;
 @property (assign, nonatomic) NSInteger retrying;
 @property (strong, nonatomic) void (^completion)(FSResponse *);
+@property (strong, nonatomic) NSMutableDictionary *httpHeaderFields;
 
 @end
 
@@ -48,13 +50,13 @@
 @property (strong, nonatomic) NSString *cacheKey;
 @property (assign, nonatomic) BOOL fromCache;
 @property (strong, nonatomic) id object;
-@property (strong, nonatomic) NSString *errorMessage;
 
 @end
 
 @interface FSAPIRequestManager()
 
 @property (strong, nonatomic) AFHTTPRequestOperationManager *httpRequest;
+@property (strong, nonatomic) AFHTTPRequestOperationManager *jsonRequest;
 @property (strong, nonatomic) TMDiskCache *diskCache;
 @property (strong, nonatomic) NSMutableArray *requests;
 @property (strong, nonatomic) NSMapTable *responses;
@@ -86,6 +88,8 @@
     
     if (!self.httpRequest) {
         self.httpRequest = [[AFHTTPRequestOperationManager alloc] initWithBaseURL:[NSURL URLWithString:self.baseURL]];
+        self.jsonRequest = [[AFHTTPRequestOperationManager alloc] initWithBaseURL:[NSURL URLWithString:self.baseURL]];
+        self.jsonRequest.requestSerializer = [AFJSONRequestSerializer serializer];
     }
     
     if (object.method != FSRequestMethodGET) {
@@ -100,7 +104,7 @@
     }
     
     //load response from cache
-    if (object.cachePolicy != FSRequestCachePolicyNetworkOnly && completion) {
+    if (object.retrying == 0 && object.cachePolicy != FSRequestCachePolicyNetworkOnly && completion) {
         for (id delegate in self.delegates) {
             if ([delegate respondsToSelector:@selector(requestManagerWillStartRequest:fromCache:)]) {
                 [delegate requestManagerWillStartRequest:object fromCache:YES];
@@ -118,29 +122,6 @@
         return;
     }
     
-    //setup response block
-    FSResponse * (^responseBlock)(id responseObject, BOOL save) = ^(id data, BOOL save) {
-        FSResponse *response = [[FSResponse alloc] init];
-        response.cacheKey = fullPath;
-        
-        if ([data isKindOfClass:[NSDictionary class]] && self.errorMessageComplexKey.length) {
-            response.errorMessage = [(NSDictionary *)data fs_valueForJSONComplexKey:self.errorMessageComplexKey];
-        } else {
-            response.errorMessage = nil;
-        }
-        if (!response.errorMessage && data) {
-            response.object = data;
-            if (save) {
-                if (object.cachePolicy != FSRequestCachePolicyNetworkOnly) {
-                    [self saveResponse:response];
-                }
-            }
-        }
-        
-        object.response = response;
-        return response;
-    };
-    
     //setup success block
     void (^successBlock)(AFHTTPRequestOperation *operation, id responseObject) = ^(AFHTTPRequestOperation *operation, id data) {
         [self removeRequest:object];
@@ -148,7 +129,30 @@
         FSLog(@"\nAPI : %@\nResponse : %@\n\n", fullPath, data);
         
         data = [[FSJSONParserManager sharedManager] parseJSON:data];
-        id response = responseBlock(data, object.method == FSRequestMethodGET);
+        
+        FSResponse *response = [[FSResponse alloc] init];
+        response.cacheKey = fullPath;
+        
+        if ([data isKindOfClass:[NSDictionary class]] && self.errorMessageComplexKey.length) {
+            id error = [(NSDictionary *)data fs_valueForJSONComplexKey:self.errorMessageComplexKey];
+            if (error) {
+                response.error = [NSError errorWithDomain:NSCocoaErrorDomain
+                                                     code:operation.response.statusCode
+                                                 userInfo:@{NSLocalizedDescriptionKey : error}];
+            }
+        } else {
+            response.error = nil;
+        }
+        if (!response.error && data) {
+            response.object = data;
+            if (object.method == FSRequestMethodGET) {
+                if (object.cachePolicy != FSRequestCachePolicyNetworkOnly) {
+                    [self saveResponse:response];
+                }
+            }
+        }
+        
+        object.response = response;
         
         for (id delegate in self.delegates) {
             if ([delegate respondsToSelector:@selector(requestManagerdidFinishRequest:withResponse:)]) {
@@ -164,13 +168,13 @@
     void (^failedBlock)(AFHTTPRequestOperation *operation, NSError *error) = ^(AFHTTPRequestOperation *operation, NSError *error) {
         [self removeRequest:object];
         
-        FSLog(@"\nAPI : %@\nError : %@\n\n", fullPath, error);
+        FSLog(@"\nAPI : %@\nError : %@\n\n", fullPath, operation.responseString);
         
         if (operation.cancelled) {
             return;
         }
         
-        if (object.retrying < object.retryCount || (object.retrying < 3 && object.retryCount < 0)) {
+        if (object.retryCount > 0 && object.retrying < object.retryCount) {
             object.retrying++;
             [self startRequest:object withCompletion:completion];
             return;
@@ -178,7 +182,7 @@
         object.retrying = 0;
         
         FSResponse *response = [[FSResponse alloc] init];
-        response.errorMessage = [error localizedDescription];
+        response.error = error;
         object.response = response;
         
         if (object.retryCount < 0 && (error.code <= 0 || error.code == 408)) {
@@ -202,7 +206,7 @@
         object.completion = completion;
         for (id delegate in self.delegates) {
             if ([delegate respondsToSelector:@selector(requestManagerRequestShouldDelayRequest:)]) {
-                shouldRetryingRequest &= [delegate requestManagerRequestShouldDelayRequest:object];
+                shouldRetryingRequest |= [delegate requestManagerRequestShouldDelayRequest:object];
             }
         }
         if (shouldRetryingRequest) {
@@ -220,9 +224,10 @@
     [self cancelRequest:object];
     [self addRequest:object];
     
+    AFHTTPRequestOperationManager *requestManager = object.contentType == FSContentTypeForm ? self.httpRequest : self.jsonRequest;
     //setup headers
     for (NSString *key in object.httpHeaderFields) {
-        [self.httpRequest.requestSerializer setValue:object.httpHeaderFields[key] forHTTPHeaderField:key];
+        [requestManager.requestSerializer setValue:object.httpHeaderFields[key] forHTTPHeaderField:key];
     }
     
     //setup method
@@ -237,10 +242,10 @@
     
     //process online request
     if (object.constructingBodyBlock) {
-        object.operation = [self.httpRequest POST:fullPath parameters:object.body constructingBodyWithBlock:object.constructingBodyBlock success:successBlock failure:failedBlock];
+        object.operation = [requestManager POST:fullPath parameters:object.body constructingBodyWithBlock:object.constructingBodyBlock success:successBlock failure:failedBlock];
     } else {
-        object.operation = [self.httpRequest HTTPRequestOperationWithHTTPMethod:method URLString:fullPath parameters:object.body success:successBlock failure:failedBlock];
-        [self.httpRequest.operationQueue addOperation:object.operation];
+        object.operation = [requestManager HTTPRequestOperationWithHTTPMethod:method URLString:fullPath parameters:object.body success:successBlock failure:failedBlock];
+        [requestManager.operationQueue addOperation:object.operation];
     }
 }
 
@@ -258,9 +263,37 @@
             return;
         }
     }
-    if (req.response.errorMessage) {
+    if (req.response.error) {
         if (req.retryCount >= 0 && !req.errorHidden) {
-            [SVProgressHUD showErrorWithStatus:NSLocalizedString([req.response.errorMessage description], nil) maskType:SVProgressHUDMaskTypeBlack];
+            [SVProgressHUD dismiss];
+#ifdef DEBUG
+            NSData *errDetails = req.response.error.userInfo[@"com.alamofire.serialization.response.error.data"];
+#else
+            NSData *errDetails = nil;
+#endif
+            [UIAlertController showAlertInViewController:[UIViewController fs_topViewController]
+                                               withTitle:NSLocalizedString(@"Error",nil)
+                                                 message:[req.response.error localizedDescription]
+                                       cancelButtonTitle:NSLocalizedString(@"Dismiss", nil)
+                                  destructiveButtonTitle:nil
+                                       otherButtonTitles:errDetails ? @[@"Debug Details"] : nil
+                                                tapBlock:^(UIAlertController * _Nonnull controller, UIAlertAction * _Nonnull action, NSInteger buttonIndex) {
+                                                    if (buttonIndex == controller.firstOtherButtonIndex) {
+                                                        
+                                                        NSBundle *bundle = [NSBundle bundleForClass:self.class];
+                                                        NSURL *url = [bundle URLForResource:@"FSCodeTemplate" withExtension:@"bundle"];
+                                                        NSBundle *resourceBundle = [NSBundle bundleWithURL:url];
+                                                        
+                                                        FSWebController *wc = [FSWebController fs_newControllerInBundle:resourceBundle];
+                                                        wc.navigationItem.title = @"Error Details";
+                                                        [wc view];
+                                                        [wc.webView loadHTMLString:[[NSString alloc] initWithData:errDetails encoding:NSUTF8StringEncoding]
+                                                                           baseURL:[NSURL URLWithString:self.baseURL]];
+                                                        
+                                                        UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:wc];
+                                                        [[UIViewController fs_topViewController] presentViewController:nc animated:YES completion:nil];
+                                                    }
+                                                }];
         }
         req.response = nil;
         return;
@@ -386,11 +419,8 @@
         return;
     }
     [self.responses setObject:response forKey:response.cacheKey];
-    
-    id JSON = [[FSJSONParserManager sharedManager] parseHierarchicalObject:response.object];
-    if (JSON) {
-        [self.diskCache setObject:JSON forKey:response.cacheKey];
-    }
+    [self.diskCache setObject:[NSKeyedArchiver archivedDataWithRootObject:response.object]
+                       forKey:response.cacheKey];
 }
 
 - (void)loadResponseWithPath:(NSString *)path completion:(void(^)(FSResponse *response))completion
@@ -399,17 +429,19 @@
         completion([self cacheResponseFromResponse:[self.responses objectForKey:path]]);
     }else {
         [self.diskCache objectForKey:path block:^(TMDiskCache *cache, NSString *key, id<NSCoding> object, NSURL *fileURL) {
-            if (object) {
-                FSResponse *response = [[FSResponse alloc] init];
-                response.cacheKey = path;
-                if (![self.responses objectForKey:path]) {
-                    [self.responses setObject:response forKey:path];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (object) {
+                    FSResponse *response = [[FSResponse alloc] init];
+                    response.cacheKey = path;
+                    if (![self.responses objectForKey:path]) {
+                        [self.responses setObject:response forKey:path];
+                    }
+                    response.object = [NSKeyedUnarchiver unarchiveObjectWithData:(NSData *)object];
+                    completion([self cacheResponseFromResponse:response]);
+                } else {
+                    completion(nil);
                 }
-                response.object = [[FSJSONParserManager sharedManager] parseJSON:object];
-                completion([self cacheResponseFromResponse:response]);
-            } else {
-                completion(nil);
-            }
+            });
         }];
     }
 }
@@ -426,6 +458,13 @@
 @end
 
 @implementation FSRequest
+
+- (instancetype)init
+{
+    self = [super init];
+    self.httpHeaderFields = [NSMutableDictionary dictionary];
+    return self;
+}
 
 @end
 

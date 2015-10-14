@@ -35,9 +35,7 @@ For now it only consist of :
   s.requires_arc = true
 
   s.source_files = 'Pod/Classes/**/*'
-  s.resource_bundles = {
-    'FSCodeTemplate' => ['Pod/Assets/*.png']
-  }
+  s.resources    = 'Pod/FSCodeTemplate.bundle'
 
   # s.public_header_files = 'Pod/Classes/**/*.h'
   # s.frameworks = 'UIKit', 'MapKit'
@@ -47,4 +45,5 @@ For now it only consist of :
   s.dependency 'NSURL+QueryDictionary'
   s.dependency 'FXKeychain'
   s.dependency 'TMCache'
+  s.dependency 'UIAlertController+Blocks'
 end

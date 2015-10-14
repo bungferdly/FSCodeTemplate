@@ -10,6 +10,7 @@
 #import <FXKeychain/FXKeychain.h>
 
 NSString * const kFSRegisteredKeys = @"kFSRegisteredKeys";
+NSString * const kFSKeychainInstalled = @"FSKeychainInstalled";
 
 @interface FSKeychainManager()
 
@@ -44,6 +45,11 @@ NSString * const kFSRegisteredKeys = @"kFSRegisteredKeys";
     NSString *keychainGroup = [self keychainGroup];
     self.keychain = [[FXKeychain alloc] initWithService:keychainGroup accessGroup:keychainGroup];
     self.keys = [[NSMutableArray alloc] initWithArray:[self objectForKey:kFSRegisteredKeys]];
+    
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:kFSKeychainInstalled]) {
+        [self removeAllObjects];
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kFSKeychainInstalled];
+    }
 }
 
 - (id)objectForKey:(NSString *)aKey

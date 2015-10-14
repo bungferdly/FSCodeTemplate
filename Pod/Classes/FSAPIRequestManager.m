@@ -92,15 +92,27 @@
         self.jsonRequest.requestSerializer = [AFJSONRequestSerializer serializer];
     }
     
-    if (object.method != FSRequestMethodGET) {
-        object.cachePolicy = FSRequestCachePolicyNetworkOnly;
-    }
-    
     //setup fullpath
     NSString *fullPath = object.path;
     NSParameterAssert(fullPath);
-    if (object.parameters) {
+    if (object.parameters.count) {
         fullPath = [NSString stringWithFormat:@"%@?%@", fullPath, [object.parameters uq_URLQueryString]];
+    }
+    
+    if (object.method == FSRequestMethodPOST) {
+        object.cachePolicy = FSRequestCachePolicyNetworkOnly;
+    }
+    
+    //remove object from cache
+    if (object.method == FSRequestMethodDELETE && object.cachePolicy == FSRequestCachePolicyCacheOnly) {
+        [self.diskCache removeObjectForKey:fullPath block:^(TMDiskCache *cache, NSString *key, id<NSCoding> object, NSURL *fileURL) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (completion) {
+                    completion(nil);
+                }
+            });
+        }];
+        return;
     }
     
     //load response from cache
@@ -279,12 +291,7 @@
                                        otherButtonTitles:errDetails ? @[@"Debug Details"] : nil
                                                 tapBlock:^(UIAlertController * _Nonnull controller, UIAlertAction * _Nonnull action, NSInteger buttonIndex) {
                                                     if (buttonIndex == controller.firstOtherButtonIndex) {
-                                                        
-                                                        NSBundle *bundle = [NSBundle bundleForClass:self.class];
-                                                        NSURL *url = [bundle URLForResource:@"FSCodeTemplate" withExtension:@"bundle"];
-                                                        NSBundle *resourceBundle = [NSBundle bundleWithURL:url];
-                                                        
-                                                        FSWebController *wc = [FSWebController fs_newControllerInBundle:resourceBundle];
+                                                        FSWebController *wc = [FSWebController fs_newController];
                                                         wc.navigationItem.title = @"Error Details";
                                                         [wc view];
                                                         [wc.webView loadHTMLString:[[NSString alloc] initWithData:errDetails encoding:NSUTF8StringEncoding]

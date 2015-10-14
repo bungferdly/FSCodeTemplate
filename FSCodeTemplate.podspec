@@ -35,7 +35,7 @@ For now it only consist of :
   s.requires_arc = true
 
   s.source_files = 'Pod/Classes/**/*'
-  s.resources    = 'Pod/FSCodeTemplate.bundle'
+  s.resources    = ['Pod/Assets/*']
 
   # s.public_header_files = 'Pod/Classes/**/*.h'
   # s.frameworks = 'UIKit', 'MapKit'

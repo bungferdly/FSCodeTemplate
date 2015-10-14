@@ -12,7 +12,6 @@
 
 + (instancetype)fs_topViewController;
 + (instancetype)fs_newController;
-+ (instancetype)fs_newControllerInBundle:(NSBundle *)bundle;
 - (void)fs_setAsRootViewController;
 
 @end

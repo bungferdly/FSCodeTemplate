@@ -10,25 +10,16 @@
 
 @implementation UIView (FS)
 
-- (void)subviewsMapping:(void (^)(UIView *view, BOOL *stop))map
+- (void)fs_subviewsMapping:(void (^)(UIView *view, BOOL *stop))map
 {
     BOOL stop = NO;
     for (UIControl *con in self.subviews) {
-        [con subviewsMapping:map];
+        [con fs_subviewsMapping:map];
         map(con, &stop);
         if (stop) {
             return;
         }
     }
-}
-
-- (void)controlsWithTagMapping:(void (^)(UIControl *, BOOL *))map
-{
-    [self subviewsMapping:^(UIView *view, BOOL *stop) {
-        if ([view isKindOfClass:[UIControl class]] && view.tag > 0) {
-            map((UIControl *)view, stop);
-        }
-    }];
 }
 
 @end

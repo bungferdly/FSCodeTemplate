@@ -143,3 +143,22 @@
 }
 
 @end
+
+@implementation FSModel
+
+- (instancetype)initWithCoder:(NSCoder *)decoder
+{
+    return [self initWithDictionary:[decoder decodeObjectForKey:@"json"] error:nil];
+}
+
+- (void)encodeWithCoder:(NSCoder *)encoder
+{
+    [encoder encodeObject:[self toDictionary] forKey:@"json"];
+}
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES;
+}
+
+@end

@@ -22,10 +22,10 @@
     [super awakeFromNib];
     
     self.segments = [NSMutableArray array];
-    [self subviewsMapping:^(UIView *view, BOOL *stop) {
+    [self fs_subviewsMapping:^(UIView *view, BOOL *stop) {
         if ([view isKindOfClass:[UIControl class]]) {
             [self.segments addObject:(UIControl *)view];
-            [(UIControl *)view addTarget:self action:@selector(buttonDidSelect:) forControlEvents:UIControlEventTouchUpInside];
+            [(UIControl *)view addTarget:self action:@selector(controlDidSelect:) forControlEvents:UIControlEventTouchUpInside];
         }
     }];
     [self.segments sortUsingComparator:^NSComparisonResult(UIView *  _Nonnull obj1, UIView *  _Nonnull obj2) {
@@ -35,7 +35,7 @@
     self.value = _value;
 }
 
-- (void)buttonDidSelect:(UIButton *)sender
+- (void)controlDidSelect:(UIButton *)sender
 {
     if (self.value != [self.segments indexOfObject:sender]) {
         [UIView animateWithDuration:0.2 animations:^{

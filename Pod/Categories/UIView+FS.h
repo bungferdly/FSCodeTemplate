@@ -10,7 +10,6 @@
 
 @interface UIView (FS)
 
-- (void)subviewsMapping:(void (^)(UIView *view, BOOL *stop))map;
-- (void)controlsWithTagMapping:(void (^)(UIControl *control, BOOL *stop))map;
+- (void)fs_subviewsMapping:(void (^)(UIView *view, BOOL *stop))map;
 
 @end

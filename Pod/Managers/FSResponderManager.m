@@ -58,6 +58,9 @@
 
 - (void)gotoNextResponder
 {
+    if (![self.currentResponder canResignFirstResponder]) {
+        return;
+    }
     self.currentResponder = self.nextResponder;
     self.nextResponder = nil;
     [self.currentResponder becomeFirstResponder];
@@ -71,7 +74,7 @@
 
 @end
 
-@implementation UIView (FSControlManager)
+@implementation UIView (FSResponderManager)
 
 - (id)fs_getFirstResponder
 {

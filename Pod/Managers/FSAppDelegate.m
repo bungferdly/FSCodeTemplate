@@ -8,12 +8,13 @@
 
 #import "FSAppDelegate.h"
 #import "FSManager.h"
+#import "FSResponderManager.h"
 
 @implementation FSAppDelegate
 
 - (void)initializeManagers
 {
-    
+    [FSResponderManager sharedManager];
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions

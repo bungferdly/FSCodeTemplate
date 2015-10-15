@@ -7,6 +7,7 @@
 //
 
 #import "FSManager.h"
+#import <JSONModel/JSONModel.h>
 
 @interface FSJSONParserManager : FSManager
 
@@ -26,5 +27,9 @@
 
 /// Clear cached objects.
 - (void)clearCache;
+
+@end
+
+@interface FSModel : JSONModel
 
 @end

@@ -34,10 +34,10 @@ For now it only consist of :
   s.platform     = :ios, '7.0'
   s.requires_arc = true
 
-  s.source_files = 'Pod/Classes/**/*'
-  s.resources    = ['Pod/Assets/*']
+  s.source_files = 'Pod/**/*.{h,m}'
+  s.resources    = 'Pod/Resources/**/*'
 
-  # s.public_header_files = 'Pod/Classes/**/*.h'
+  # s.public_header_files = 'Pod/**/*.h'
   # s.frameworks = 'UIKit', 'MapKit'
   s.dependency 'AFNetworking'
   s.dependency 'SVProgressHUD'

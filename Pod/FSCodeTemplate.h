@@ -17,7 +17,8 @@
 
 #import "FSAppDelegate.h"
 #import "FSManager.h"
-#import "FSAPIRequestManager.h"
+#import "FSAccountManager.h"
+#import "FSRequestManager.h"
 #import "FSJSONParserManager.h"
 #import "FSResponderManager.h"
 #import "FSKeychainManager.h"

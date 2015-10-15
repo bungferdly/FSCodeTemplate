@@ -8,11 +8,12 @@
 
 #import "FSKeychainManager.h"
 #import <FXKeychain/FXKeychain.h>
+#import "FSAccountManager.h"
 
 NSString * const kFSRegisteredKeys = @"kFSRegisteredKeys";
 NSString * const kFSKeychainInstalled = @"FSKeychainInstalled";
 
-@interface FSKeychainManager()
+@interface FSKeychainManager() <FSAccountManagerDelegate>
 
 @property (strong, nonatomic) NSMutableArray *keys;
 @property (strong, nonatomic) FXKeychain *keychain;
@@ -50,6 +51,8 @@ NSString * const kFSKeychainInstalled = @"FSKeychainInstalled";
         [self removeAllObjects];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kFSKeychainInstalled];
     }
+    
+    [[FSAccountManager sharedManager] addDelegate:self];
 }
 
 - (id)objectForKey:(NSString *)aKey
@@ -91,6 +94,11 @@ NSString * const kFSKeychainInstalled = @"FSKeychainInstalled";
         [self.keychain removeObjectForKey:key];
     }
     [self.keys removeAllObjects];
+}
+
+- (void)accountManagerDidLoggedOut:(id)userInfo
+{
+    [self removeAllObjects];
 }
 
 @end

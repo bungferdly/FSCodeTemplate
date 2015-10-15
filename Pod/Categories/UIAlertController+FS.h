@@ -11,7 +11,7 @@
 
 @interface UIAlertController (FS)
 
-+ (instancetype)showWithMessage:(NSString *)message;
-+ (instancetype)showWithTitle:(NSString *)title message:(NSString *)message;
++ (instancetype)fs_showWithMessage:(NSString *)message;
++ (instancetype)fs_showWithTitle:(NSString *)title message:(NSString *)message;
 
 @end

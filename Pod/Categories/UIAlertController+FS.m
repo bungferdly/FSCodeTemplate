@@ -11,12 +11,12 @@
 
 @implementation UIAlertController (FS)
 
-+ (instancetype)showWithMessage:(NSString *)message
++ (instancetype)fs_showWithMessage:(NSString *)message
 {
-    return [self showWithTitle:nil message:message];
+    return [self fs_showWithTitle:nil message:message];
 }
 
-+ (instancetype)showWithTitle:(NSString *)title message:(NSString *)message
++ (instancetype)fs_showWithTitle:(NSString *)title message:(NSString *)message
 {
     return [self showAlertInViewController:[UIViewController fs_topViewController] withTitle:title message:message cancelButtonTitle:@"Dismiss" destructiveButtonTitle:nil otherButtonTitles:nil tapBlock:nil];
 }

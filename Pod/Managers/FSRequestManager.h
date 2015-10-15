@@ -57,7 +57,7 @@ typedef enum : NSUInteger {
 
 @end
 
-@interface FSAPIRequestManager : FSManager
+@interface FSRequestManager : FSManager
 
 @property (strong, nonatomic) NSString *baseURL;
 @property (strong, nonatomic) NSString *resultCompexKey;
@@ -70,7 +70,7 @@ typedef enum : NSUInteger {
 
 @end
 
-@protocol FSAPIRequestManagerDelegate <NSObject>
+@protocol FSRequestManagerDelegate <NSObject>
 
 @optional
 - (BOOL)requestManagerRequestShouldDelayRequest:(FSRequest *)request;

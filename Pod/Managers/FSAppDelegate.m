@@ -73,53 +73,6 @@
     }
 }
 
-- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray *))restorationHandler
-{
-    BOOL ret = NO;
-    for (FSManager *manager in [FSManager allManagers]) {
-        if ([manager respondsToSelector:@selector(application:continueUserActivity:restorationHandler:)]) {
-            ret |= [manager application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
-        }
-    }
-    return ret;
-}
-
-- (void)application:(UIApplication *)application didChangeStatusBarFrame:(CGRect)oldStatusBarFrame
-{
-    for (FSManager *manager in [FSManager allManagers]) {
-        if ([manager respondsToSelector:@selector(application:didChangeStatusBarFrame:)]) {
-            [manager application:application didChangeStatusBarFrame:oldStatusBarFrame];
-        }
-    }
-}
-
-- (void)application:(UIApplication *)application didChangeStatusBarOrientation:(UIInterfaceOrientation)oldStatusBarOrientation
-{
-    for (FSManager *manager in [FSManager allManagers]) {
-        if ([manager respondsToSelector:@selector(application:didChangeStatusBarOrientation:)]) {
-            [manager application:application didChangeStatusBarOrientation:oldStatusBarOrientation];
-        }
-    }
-}
-
-- (void)application:(UIApplication *)application didDecodeRestorableStateWithCoder:(NSCoder *)coder
-{
-    for (FSManager *manager in [FSManager allManagers]) {
-        if ([manager respondsToSelector:@selector(application:didDecodeRestorableStateWithCoder:)]) {
-            [manager application:application didDecodeRestorableStateWithCoder:coder];
-        }
-    }
-}
-
-- (void)application:(UIApplication *)application didFailToContinueUserActivityWithType:(NSString *)userActivityType error:(NSError *)error
-{
-    for (FSManager *manager in [FSManager allManagers]) {
-        if ([manager respondsToSelector:@selector(application:didFailToContinueUserActivityWithType:error:)]) {
-            [manager application:application didFailToContinueUserActivityWithType:userActivityType error:error];
-        }
-    }
-}
-
 - (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
 {
     for (FSManager *manager in [FSManager allManagers]) {

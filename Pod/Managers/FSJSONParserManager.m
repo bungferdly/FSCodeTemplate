@@ -10,7 +10,7 @@
 #import "FSCodeTemplate.h"
 #import <JSONModel/JSONModel.h>
 
-@interface FSJSONParserManager()
+@interface FSJSONParserManager() <FSAccountManagerDelegate>
 
 @property (strong, nonatomic) NSMutableArray *models;
 @property (strong, nonatomic) NSMutableDictionary *modelCaches;
@@ -23,6 +23,7 @@
 {
     self.models = [NSMutableArray array];
     self.modelCaches = [NSMutableDictionary dictionary];
+    [[FSAccountManager sharedManager] addDelegate:self];
 }
 
 - (void)registerClass:(Class)cls forJSONKey:(NSString *)key withPrimaryKey:(NSString *)primaryKey
@@ -134,6 +135,11 @@
         [mData setObject:[self parseHierarchicalObject:[mData valueForKey:key]] forKey:key];
     }
     return mData;
+}
+
+- (void)accountManagerDidLoggedOut:(id)userInfo
+{
+    [self clearCache];
 }
 
 @end

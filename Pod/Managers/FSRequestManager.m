@@ -6,7 +6,7 @@
 //
 //
 
-#import "FSAPIRequestManager.h"
+#import "FSRequestManager.h"
 #import "FSKeychainManager.h"
 #import "FSJSONParserManager.h"
 #import <SVProgressHUD/SVProgressHUD.h>
@@ -15,6 +15,7 @@
 #import <AFNetworking/AFNetworking.h>
 #import "FSCodeTemplate.h"
 #import "FSWebController.h"
+#import "FSAccountManager.h"
 
 #define kFSAPIRequestIndefiniteRequests @"kFSAPIRequestIndefiniteRequests"
 #define kFSAPIRequestCacheName @"kFSAPIRequestCache"
@@ -53,7 +54,7 @@
 
 @end
 
-@interface FSAPIRequestManager()
+@interface FSRequestManager() <FSAccountManagerDelegate>
 
 @property (strong, nonatomic) AFHTTPRequestOperationManager *httpRequest;
 @property (strong, nonatomic) AFHTTPRequestOperationManager *jsonRequest;
@@ -63,7 +64,7 @@
 
 @end
 
-@implementation FSAPIRequestManager
+@implementation FSRequestManager
 
 - (void)didLoad
 {
@@ -79,6 +80,8 @@
     }];
     [[AFNetworkReachabilityManager sharedManager] startMonitoring];
     [self performSelector:@selector(loadIndefiniteRequests) withObject:nil afterDelay:0];
+    
+    [[FSAccountManager sharedManager] addDelegate:self];
 }
 
 - (void)startRequest:(FSRequest *)object withCompletion:(void (^)(FSResponse *))completion
@@ -462,6 +465,12 @@
     return cacheResponse;
 }
 
+- (void)accountManagerDidLoggedOut:(id)userInfo
+{
+    [self cancelAllRequests];
+    [self clearCache];
+}
+
 @end
 
 @implementation FSRequest
@@ -489,7 +498,7 @@
 
 - (void)save
 {
-    [[FSAPIRequestManager sharedManager] saveResponse:self];
+    [[FSRequestManager sharedManager] saveResponse:self];
 }
 
 @end

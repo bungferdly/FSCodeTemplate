@@ -140,8 +140,7 @@
     //setup success block
     void (^successBlock)(AFHTTPRequestOperation *operation, id responseObject) = ^(AFHTTPRequestOperation *operation, id data) {
         [self removeRequest:object];
-        
-        FSLog(@"\nAPI : %@\nResponse : %@\n\n", fullPath, data);
+        [self logOperation:operation];
         
         data = [[FSJSONParserManager sharedManager] parseJSON:data];
         
@@ -182,8 +181,7 @@
     //setup failure block
     void (^failedBlock)(AFHTTPRequestOperation *operation, NSError *error) = ^(AFHTTPRequestOperation *operation, NSError *error) {
         [self removeRequest:object];
-        
-        FSLog(@"\nAPI : %@\nError : %@\n\n", fullPath, operation.responseString);
+        [self logOperation:operation];
         
         if (operation.cancelled) {
             return;
@@ -262,6 +260,19 @@
         object.operation = [requestManager HTTPRequestOperationWithHTTPMethod:method URLString:fullPath parameters:object.body success:successBlock failure:failedBlock];
         [requestManager.operationQueue addOperation:object.operation];
     }
+}
+
+- (void)logOperation:(AFHTTPRequestOperation *)operation
+{
+#ifdef DEBUG
+    FSLog(@"\n%@ : %@%@%@\nRESPONSE (%d) : %@\n\n",
+          operation.request.HTTPMethod,
+          operation.request.URL,
+          operation.request.HTTPBody.length ? @"\nBODY : " : @"",
+          operation.request.HTTPBody.length ? [[NSString alloc] initWithData:operation.request.HTTPBody encoding:NSUTF8StringEncoding] : @"",
+          (int)operation.response.statusCode,
+          operation.responseString);
+#endif
 }
 
 - (void)restartRequest:(FSRequest *)request

@@ -17,8 +17,8 @@
 #import "FSWebController.h"
 #import "FSAccountManager.h"
 
-#define kFSAPIRequestIndefiniteRequests @"kFSAPIRequestIndefiniteRequests"
-#define kFSAPIRequestCacheName @"kFSAPIRequestCache"
+#define FSRequestManagerIndefiniteRequests @"FSRequestManagerIndefiniteRequests"
+#define FSRequestManagerCacheName @"FSRequestManagerCacheName"
 
 @interface AFHTTPRequestOperationManager(FS)
 
@@ -36,7 +36,7 @@
 
 @end
 
-@interface FSRequest()
+@interface FSRequest() <NSCoding>
 
 @property (strong, nonatomic) AFHTTPRequestOperation *operation;
 @property (strong, nonatomic) FSResponse *response;
@@ -71,15 +71,13 @@
     self.requests = [NSMutableArray array];
     self.responses = [NSMapTable strongToWeakObjectsMapTable];
     self.errorMessageComplexKey = @"error";
-    self.diskCache = [[TMDiskCache alloc] initWithName:kFSAPIRequestCacheName];
+    self.diskCache = [[TMDiskCache alloc] initWithName:FSRequestManagerCacheName];
     
-    [[AFNetworkReachabilityManager sharedManager] setReachabilityStatusChangeBlock:^void(AFNetworkReachabilityStatus status) {
+    [[AFNetworkReachabilityManager sharedManager] setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
         if (status == AFNetworkReachabilityStatusReachableViaWWAN || status == AFNetworkReachabilityStatusReachableViaWiFi) {
             [self restartIndefiniteRequests];
         }
     }];
-    [[AFNetworkReachabilityManager sharedManager] startMonitoring];
-    [self performSelector:@selector(loadIndefiniteRequests) withObject:nil afterDelay:0];
     
     [[FSAccountManager sharedManager] addDelegate:self];
 }
@@ -328,12 +326,6 @@
     req.response = nil;
 }
 
-- (void)clearCache
-{
-    [self.responses removeAllObjects];
-    [self.diskCache removeAllObjects];
-}
-
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     [self saveIndefiniteRequests];
@@ -373,15 +365,6 @@
     }
 }
 
-- (void)cancelAllRequests
-{
-    while (self.requests.count) {
-        FSRequest *request = self.requests[0];
-        [self.requests removeObject:request];
-        [request.operation cancel];
-    }
-}
-
 #pragma mark - Indefinite Requests
 
 - (void)restartIndefiniteRequests
@@ -395,40 +378,24 @@
 
 - (void)saveIndefiniteRequests
 {
-    NSMutableArray *allData = [@[] mutableCopy];
+    NSMutableArray *requests = [@[] mutableCopy];
     for (FSRequest *request in self.requests) {
         if (request.retryCount < 0) {
-            NSMutableDictionary *data = [@{} mutableCopy];
-            [data setObject:request.path forKey:@"path"];
-            if (request.parameters) {
-                [data setObject:request.parameters forKey:@"parameters"];
-            }
-            if (request.body) {
-                [data setObject:request.body forKey:@"body"];
-            }
-            if (request.hudTitle) {
-                [data setObject:request.hudTitle forKey:@"hudTitle"];
-            }
-            if (request.hudSuccessTitle) {
-                [data setObject:request.hudSuccessTitle forKey:@"hudSuccessTitle"];
-            }
-            [data setObject:@(request.method) forKey:@"method"];
-            [data setObject:@(request.cachePolicy) forKey:@"cachePolicy"];
-            [allData addObject:data];
+            [requests addObject:request];
         }
     }
-    [self.diskCache setObject:allData forKey:kFSAPIRequestIndefiniteRequests];
+    [self.diskCache setObject:requests forKey:FSRequestManagerIndefiniteRequests];
 }
 
 - (void)loadIndefiniteRequests
 {
-    [self.diskCache objectForKey:kFSAPIRequestIndefiniteRequests block:^(TMDiskCache *cache, NSString *key, NSArray *object, NSURL *fileURL) {
-        for (NSDictionary *data in object) {
-            FSRequest *request = [[FSRequest alloc] init];
-            request.retryCount = -1;
-            [request setValuesForKeysWithDictionary:data];
-            [self startRequest:request withCompletion:nil];
-        }
+    [self.diskCache objectForKey:FSRequestManagerIndefiniteRequests block:^(TMDiskCache *cache, NSString *key, NSArray *object, NSURL *fileURL) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            for (FSRequest *request in object) {
+                [self startRequest:request withCompletion:nil];
+            }
+            [self.diskCache removeObjectForKey:FSRequestManagerIndefiniteRequests];
+        });
     }];
 }
 
@@ -476,15 +443,59 @@
     return cacheResponse;
 }
 
+#pragma mark - Account Cycle
+
+- (void)accountManagerDidLoggedIn:(id)userInfo
+{
+    [self loadIndefiniteRequests];
+    [[AFNetworkReachabilityManager sharedManager] startMonitoring];
+}
+
 - (void)accountManagerDidLoggedOut:(id)userInfo
 {
-    [self cancelAllRequests];
-    [self clearCache];
+    [self cleanup];
+    [[AFNetworkReachabilityManager sharedManager] stopMonitoring];
+}
+
+- (void)cleanup
+{
+    while (self.requests.count) {
+        FSRequest *request = self.requests[0];
+        [self.requests removeObject:request];
+        [request.operation cancel];
+    }
+    [self.responses removeAllObjects];
+    [self.diskCache removeAllObjects];
 }
 
 @end
 
+#pragma mark -
+
 @implementation FSRequest
+
++ (NSArray *)savedKeys
+{
+    return @[@"path", @"parameters", @"body", @"method", @"retryCount",
+             @"cachePolicy", @"errorHidden", @"contentType",
+             @"hudTitle", @"hudSuccessTitle", @"httpHeaderFields"];
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder
+{
+    self = [super init];
+    for (NSString *key in [self.class savedKeys]) {
+        [self setValue:[aDecoder decodeObjectForKey:key] forKey:key];
+    }
+    return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder
+{
+    for (NSString *key in [self.class savedKeys]) {
+        [aCoder encodeObject:[self valueForKey:key] forKey:key];
+    }
+}
 
 - (instancetype)init
 {

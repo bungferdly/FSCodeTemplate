@@ -64,9 +64,7 @@ typedef enum : NSUInteger {
 @property (strong, nonatomic) NSString *errorMessageComplexKey;
 
 - (void)startRequest:(FSRequest *)request withCompletion:(void(^)(FSResponse *response))completion;
-- (void)cancelRequest:(FSRequest *)request;
-- (void)cancelAllRequests;
-- (void)clearCache;
+- (void)cleanup;
 
 @end
 

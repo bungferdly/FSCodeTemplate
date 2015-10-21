@@ -18,7 +18,8 @@ typedef enum : NSUInteger {
 typedef enum : NSInteger {
     FSRequestCachePolicyNetworkOnly = -1,
     FSRequestCachePolicyCacheThenNetwork,
-    FSRequestCachePolicyCacheOnly
+    FSRequestCachePolicyCacheOnly,
+    FSRequestCachePolicyCacheIfNoNetwork
 } FSRequestCachePolicy;
 
 typedef enum : NSUInteger {
@@ -48,7 +49,7 @@ typedef enum : NSUInteger {
 @interface FSResponse : NSObject
 
 @property (readonly, nonatomic) BOOL fromCache;
-@property (readonly, nonatomic) id object;
+@property (strong, nonatomic) id object;
 @property (readonly, nonatomic) NSMutableDictionary *dictionaryObject;
 @property (readonly, nonatomic) NSMutableArray *arrayObject;
 @property (strong, nonatomic) NSError *error;
@@ -62,6 +63,7 @@ typedef enum : NSUInteger {
 @property (strong, nonatomic) NSString *baseURL;
 @property (strong, nonatomic) NSString *resultCompexKey;
 @property (strong, nonatomic) NSString *errorMessageComplexKey;
+@property (assign, nonatomic) BOOL showDebugDetails;
 
 - (void)startRequest:(FSRequest *)request withCompletion:(void(^)(FSResponse *response))completion;
 - (void)cleanup;

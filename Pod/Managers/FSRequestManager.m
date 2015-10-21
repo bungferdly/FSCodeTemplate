@@ -38,6 +38,7 @@
 
 @interface FSRequest() <NSCoding>
 
+@property (readonly, nonatomic) NSString *fullPath;
 @property (strong, nonatomic) AFHTTPRequestOperation *operation;
 @property (strong, nonatomic) FSResponse *response;
 @property (assign, nonatomic) NSInteger retrying;
@@ -50,7 +51,6 @@
 
 @property (strong, nonatomic) NSString *cacheKey;
 @property (assign, nonatomic) BOOL fromCache;
-@property (strong, nonatomic) id object;
 
 @end
 
@@ -94,46 +94,31 @@
     }
     
     //setup fullpath
-    NSString *fullPath = object.path;
+    NSString *fullPath = object.fullPath;
     NSParameterAssert(fullPath);
-    if (object.parameters.count) {
-        fullPath = [NSString stringWithFormat:@"%@?%@", fullPath, [object.parameters uq_URLQueryString]];
-    }
     
-    if (object.method == FSRequestMethodPOST) {
-        object.cachePolicy = FSRequestCachePolicyNetworkOnly;
-    }
-    
-    //remove object from cache
-    if (object.method == FSRequestMethodDELETE && object.cachePolicy == FSRequestCachePolicyCacheOnly) {
-        [self.diskCache removeObjectForKey:fullPath block:^(TMDiskCache *cache, NSString *key, id<NSCoding> object, NSURL *fileURL) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                if (completion) {
-                    completion(nil);
+    //setup cache block
+    void (^cacheBlock)() = ^(FSResponse *networkResponse) {
+        if (object.retrying == 0 && object.cachePolicy != FSRequestCachePolicyNetworkOnly && completion) {
+            for (id delegate in self.delegates) {
+                if ([delegate respondsToSelector:@selector(requestManagerWillStartRequest:fromCache:)]) {
+                    [delegate requestManagerWillStartRequest:object fromCache:YES];
                 }
-            });
-        }];
-        return;
-    }
-    
-    //load response from cache
-    if (object.retrying == 0 && object.cachePolicy != FSRequestCachePolicyNetworkOnly && completion) {
-        for (id delegate in self.delegates) {
-            if ([delegate respondsToSelector:@selector(requestManagerWillStartRequest:fromCache:)]) {
-                [delegate requestManagerWillStartRequest:object fromCache:YES];
             }
+            [self loadResponseWithPath:fullPath completion:^(FSResponse *response) {
+                if (response.object || object.cachePolicy == FSRequestCachePolicyCacheOnly) {
+                    for (id delegate in self.delegates) {
+                        if ([delegate respondsToSelector:@selector(requestManagerdidFinishRequest:withResponse:)]) {
+                            [delegate requestManagerdidFinishRequest:object withResponse:response];
+                        }
+                    }
+                    completion(response);
+                } else if (object.cachePolicy == FSRequestCachePolicyCacheIfNoNetwork) {
+                    completion(networkResponse);
+                }
+            }];
         }
-        [self loadResponseWithPath:fullPath completion:^(FSResponse *response) {
-            if (response || object.cachePolicy == FSRequestCachePolicyCacheOnly) {
-                completion(response);
-            }
-        }];
-    }
-    
-    //do not proceed further if offline request
-    if (object.cachePolicy == FSRequestCachePolicyCacheOnly) {
-        return;
-    }
+    };
     
     //setup success block
     void (^successBlock)(AFHTTPRequestOperation *operation, id responseObject) = ^(AFHTTPRequestOperation *operation, id data) {
@@ -200,16 +185,56 @@
             [self.requests addObject:object];
         }
         
-        for (id delegate in self.delegates) {
-            if ([delegate respondsToSelector:@selector(requestManagerdidFinishRequest:withResponse:)]) {
-                [delegate requestManagerdidFinishRequest:object withResponse:response];
+        if (response.error && object.cachePolicy == FSRequestCachePolicyCacheIfNoNetwork) {
+            cacheBlock(response);
+        } else {
+            for (id delegate in self.delegates) {
+                if ([delegate respondsToSelector:@selector(requestManagerdidFinishRequest:withResponse:)]) {
+                    [delegate requestManagerdidFinishRequest:object withResponse:response];
+                }
+            }
+            
+            if (completion) {
+                completion(response);
             }
         }
-        
-        if (completion) {
-            completion(response);
-        }
     };
+    
+    if (object.cachePolicy == FSRequestCachePolicyCacheOnly) {
+        if (object.method == FSRequestMethodDELETE) {
+            [self.diskCache removeObjectForKey:fullPath block:^(TMDiskCache *cache, NSString *key, id<NSCoding> object, NSURL *fileURL) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if (completion) {
+                        completion(nil);
+                    }
+                });
+            }];
+            return;
+        } else if (object.method == FSRequestMethodPOST) {
+            FSResponse *response = [[FSResponse alloc] init];
+            response.cacheKey = fullPath;
+            response.object = object.body;
+            [self saveResponse:response];
+            if (completion) {
+                completion(nil);
+            }
+            return;
+        }
+    } else if (object.cachePolicy != FSRequestCachePolicyNetworkOnly) {
+        if (object.method == FSRequestMethodPOST) {
+            object.cachePolicy = FSRequestCachePolicyNetworkOnly;
+        }
+    }
+    
+    //load response from cache
+    if (object.cachePolicy != FSRequestCachePolicyCacheIfNoNetwork) {
+        cacheBlock(nil);
+    }
+    
+    //do not proceed further if offline request
+    if (object.cachePolicy == FSRequestCachePolicyCacheOnly) {
+        return;
+    }
     
     //handle refresh token
     if (object.retrying < 30) {
@@ -290,29 +315,27 @@
     if (req.response.error) {
         if (req.retryCount >= 0 && !req.errorHidden) {
             [SVProgressHUD dismiss];
-#ifdef DEBUG
-            NSData *errDetails = req.response.error.userInfo[@"com.alamofire.serialization.response.error.data"];
-#else
-            NSData *errDetails = nil;
-#endif
-            [UIAlertController showAlertInViewController:[UIViewController fs_topViewController]
-                                               withTitle:NSLocalizedString(@"Error",nil)
-                                                 message:[req.response.error localizedDescription]
-                                       cancelButtonTitle:NSLocalizedString(@"Dismiss", nil)
-                                  destructiveButtonTitle:nil
-                                       otherButtonTitles:errDetails ? @[@"Debug Details"] : nil
-                                                tapBlock:^(UIAlertController * _Nonnull controller, UIAlertAction * _Nonnull action, NSInteger buttonIndex) {
-                                                    if (buttonIndex == controller.firstOtherButtonIndex) {
-                                                        FSWebController *wc = [FSWebController fs_newController];
-                                                        wc.navigationItem.title = @"Error Details";
-                                                        [wc view];
-                                                        [wc.webView loadHTMLString:[[NSString alloc] initWithData:errDetails encoding:NSUTF8StringEncoding]
-                                                                           baseURL:[NSURL URLWithString:self.baseURL]];
-                                                        
-                                                        UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:wc];
-                                                        [[UIViewController fs_topViewController] presentViewController:nc animated:YES completion:nil];
-                                                    }
-                                                }];
+            if (self.showDebugDetails) {
+                NSData *errDetails = req.response.error.userInfo[@"com.alamofire.serialization.response.error.data"];
+                [UIAlertController showAlertInViewController:[UIViewController fs_topViewController]
+                                                   withTitle:NSLocalizedString(@"Error",nil)
+                                                     message:[req.response.error localizedDescription]
+                                           cancelButtonTitle:NSLocalizedString(@"Dismiss", nil)
+                                      destructiveButtonTitle:nil
+                                           otherButtonTitles:errDetails ? @[@"Debug Details"] : nil
+                                                    tapBlock:^(UIAlertController * _Nonnull controller, UIAlertAction * _Nonnull action, NSInteger buttonIndex) {
+                                                        if (buttonIndex == controller.firstOtherButtonIndex) {
+                                                            FSWebController *wc = [FSWebController fs_newController];
+                                                            wc.navigationItem.title = @"Error Details";
+                                                            [wc view];
+                                                            [wc.webView loadHTMLString:[[NSString alloc] initWithData:errDetails encoding:NSUTF8StringEncoding]
+                                                                               baseURL:[NSURL URLWithString:self.baseURL]];
+                                                            
+                                                            UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:wc];
+                                                            [[UIViewController fs_topViewController] presentViewController:nc animated:YES completion:nil];
+                                                        }
+                                                    }];
+            }
         }
         req.response = nil;
         return;
@@ -356,7 +379,7 @@
     NSUInteger i = 0;
     while (i < self.requests.count) {
         FSRequest *request2 = self.requests[i];
-        if (request == request2) {
+        if (request == request2 || [request.fullPath isEqual:request2.fullPath]) {
             [request2.operation cancel];
             [self removeRequest:request2];
         } else {
@@ -418,17 +441,15 @@
     }else {
         [self.diskCache objectForKey:path block:^(TMDiskCache *cache, NSString *key, id<NSCoding> object, NSURL *fileURL) {
             dispatch_async(dispatch_get_main_queue(), ^{
+                FSResponse *response = [[FSResponse alloc] init];
+                response.cacheKey = path;
                 if (object) {
-                    FSResponse *response = [[FSResponse alloc] init];
-                    response.cacheKey = path;
                     if (![self.responses objectForKey:path]) {
                         [self.responses setObject:response forKey:path];
                     }
                     response.object = [NSKeyedUnarchiver unarchiveObjectWithData:(NSData *)object];
-                    completion([self cacheResponseFromResponse:response]);
-                } else {
-                    completion(nil);
                 }
+                completion([self cacheResponseFromResponse:response]);
             });
         }];
     }
@@ -473,6 +494,15 @@
 #pragma mark -
 
 @implementation FSRequest
+
+- (NSString *)fullPath
+{
+    NSString *fullPath = self.path;
+    if (self.parameters.count) {
+        fullPath = [NSString stringWithFormat:@"%@?%@", fullPath, [self.parameters uq_URLQueryString]];
+    }
+    return fullPath;
+}
 
 + (NSArray *)savedKeys
 {

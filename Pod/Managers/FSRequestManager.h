@@ -7,6 +7,7 @@
 //
 
 #import "FSManager.h"
+#import <AFNetworking/AFNetworking.h>
 
 typedef enum : NSUInteger {
     FSRequestMethodGET,

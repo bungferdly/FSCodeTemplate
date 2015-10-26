@@ -23,6 +23,7 @@
 #import "FSResponderManager.h"
 #import "FSKeychainManager.h"
 #import "FSSegmentedControl.h"
+#import "FSPhotoImageView.h"
 #import "UIViewController+FS.h"
 #import "UIView+FS.h"
 #import "UIAlertController+FS.h"

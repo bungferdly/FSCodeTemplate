@@ -392,7 +392,8 @@
 
 - (void)restartIndefiniteRequests
 {
-    for (FSRequest *request in self.requests) {
+    NSArray *requests = [self.requests copy];
+    for (FSRequest *request in requests) {
         if (!request.operation.isExecuting && request.retryCount < 0) {
             [self startRequest:request withCompletion:nil];
         }

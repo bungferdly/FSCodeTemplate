@@ -10,8 +10,8 @@
 #import <FXKeychain/FXKeychain.h>
 #import "FSAccountManager.h"
 
-NSString * const kFSRegisteredKeys = @"kFSRegisteredKeys";
-NSString * const kFSKeychainInstalled = @"FSKeychainInstalled";
+NSString * const FSKeychainKeys = @"FSKeychainKeys";
+NSString * const FSKeychainInstalled = @"FSKeychainInstalled";
 
 @interface FSKeychainManager() <FSAccountManagerDelegate>
 
@@ -22,34 +22,14 @@ NSString * const kFSKeychainInstalled = @"FSKeychainInstalled";
 
 @implementation FSKeychainManager
 
-- (NSString *)keychainGroup
-{
-    NSDictionary *query = [NSDictionary dictionaryWithObjectsAndKeys:
-                           (__bridge NSString *)kSecClassGenericPassword, (__bridge NSString *)kSecClass,
-                           @"bundleSeedID", kSecAttrAccount,
-                           @"", kSecAttrService,
-                           (id)kCFBooleanTrue, kSecReturnAttributes,
-                           nil];
-    CFDictionaryRef result = nil;
-    OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef)query, (CFTypeRef *)&result);
-    if (status == errSecItemNotFound)
-        status = SecItemAdd((__bridge CFDictionaryRef)query, (CFTypeRef *)&result);
-    if (status != errSecSuccess)
-        return [[NSBundle mainBundle] bundleIdentifier];
-    NSString *accessGroup = [(__bridge NSDictionary *)result objectForKey:(__bridge NSString *)kSecAttrAccessGroup];
-    CFRelease(result);
-    return accessGroup;
-}
-
 - (void)didLoad
 {
-    NSString *keychainGroup = [self keychainGroup];
-    self.keychain = [[FXKeychain alloc] initWithService:keychainGroup accessGroup:keychainGroup];
-    self.keys = [[NSMutableArray alloc] initWithArray:[self objectForKey:kFSRegisteredKeys]];
+    self.keychain = [FXKeychain defaultKeychain];
+    self.keys = [[NSMutableArray alloc] initWithArray:[self objectForKey:FSKeychainKeys]];
     
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:kFSKeychainInstalled]) {
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:FSKeychainInstalled]) {
         [self removeAllObjects];
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kFSKeychainInstalled];
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:FSKeychainInstalled];
     }
     
     [[FSAccountManager sharedManager] addDelegate:self];
@@ -63,7 +43,7 @@ NSString * const kFSKeychainInstalled = @"FSKeychainInstalled";
     }
     if (![self.keys containsObject:aKey]) {
         [self.keys addObject:aKey];
-        [self setObject:self.keys forKey:kFSRegisteredKeys];
+        [self setObject:self.keys forKey:FSKeychainKeys];
     }
     return data;
 }
@@ -94,6 +74,7 @@ NSString * const kFSKeychainInstalled = @"FSKeychainInstalled";
         [self.keychain removeObjectForKey:key];
     }
     [self.keys removeAllObjects];
+    [self.keychain removeObjectForKey:FSKeychainKeys];
 }
 
 - (void)accountManagerDidLoggedOut:(id)userInfo

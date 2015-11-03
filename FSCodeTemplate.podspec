@@ -46,4 +46,6 @@ For now it only consist of :
   s.dependency 'FXKeychain'
   s.dependency 'TMCache'
   s.dependency 'UIAlertController+Blocks'
+  s.dependency 'UIAlertView+Blocks'
+  s.dependency 'UIActionSheet+Blocks'
 end

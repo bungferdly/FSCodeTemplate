@@ -15,6 +15,8 @@
 #define FSLog(...) ((void)0)
 #endif
 
+#define FSOSVersion [[UIDevice currentDevice].systemVersion floatValue]
+
 #import "FSAppDelegate.h"
 #import "FSManager.h"
 #import "FSAccountManager.h"
@@ -26,7 +28,7 @@
 #import "FSPhotoImageView.h"
 #import "UIViewController+FS.h"
 #import "UIView+FS.h"
-#import "UIAlertController+FS.h"
 #import "FSPageController.h"
+#import "FSAlertController.h"
 
 #endif

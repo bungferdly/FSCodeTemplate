@@ -9,7 +9,7 @@
 #import "FSPhotoImageView.h"
 #import "UIViewController+FS.h"
 #import <SDWebImage/UIImageView+WebCache.h>
-#import <UIAlertController+Blocks/UIAlertController+Blocks.h>
+#import "FSAlertController.h"
 
 @interface FSPhotoImageView()<UIImagePickerControllerDelegate,UINavigationControllerDelegate>
 
@@ -56,20 +56,15 @@
 
 - (void)showActionSheet
 {
-    [UIAlertController showActionSheetInViewController:[UIViewController fs_topViewController]
-                                             withTitle:nil message:nil
-                                     cancelButtonTitle:NSLocalizedString(@"Cancel", nil) destructiveButtonTitle:nil
-                                     otherButtonTitles:@[NSLocalizedString(@"Take Photo", nil), NSLocalizedString(@"Choose From Gallery", nil)]
-                    popoverPresentationControllerBlock:^(UIPopoverPresentationController * _Nonnull popover) {
-                        popover.sourceView = self;
-                        popover.sourceRect = self.bounds;
-                    } tapBlock:^(UIAlertController * _Nonnull controller, UIAlertAction * _Nonnull action, NSInteger buttonIndex) {
-                        if (buttonIndex == controller.firstOtherButtonIndex) {
-                            [self showImagePicker:UIImagePickerControllerSourceTypeCamera];
-                        } else if (buttonIndex == controller.firstOtherButtonIndex + 1) {
-                            [self showImagePicker:UIImagePickerControllerSourceTypePhotoLibrary];
-                        }
-                    }];
+    [FSAlertController showWithTitle:nil message:nil cancelButtonTitle:NSLocalizedString(@"Cancel", nil) destructiveButtonTitle:nil
+                   otherButtonTitles:@[NSLocalizedString(@"Take Photo", nil), NSLocalizedString(@"Choose From Gallery", nil)]
+                           container:self tapBlock:^(FSAlertController * _Nonnull controller, NSInteger buttonIndex) {
+                               if (buttonIndex == controller.firstOtherButtonIndex) {
+                                   [self showImagePicker:UIImagePickerControllerSourceTypeCamera];
+                               } else if (buttonIndex == controller.firstOtherButtonIndex + 1) {
+                                   [self showImagePicker:UIImagePickerControllerSourceTypePhotoLibrary];
+                               }
+                           }];
 }
 
 - (void)showImagePicker:(UIImagePickerControllerSourceType)sourceType

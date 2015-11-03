@@ -69,9 +69,14 @@
                               }
         }];
     } else if ([container isKindOfClass:[UIBarButtonItem class]]){
-        [UIActionSheet showFromBarButtonItem:container animated:YES withTitle:title cancelButtonTitle:cancelButtonTitle
+        static UIActionSheet *lastActionSheet = nil;
+        if (lastActionSheet) {
+            [lastActionSheet dismissWithClickedButtonIndex:lastActionSheet.cancelButtonIndex animated:NO];
+        }
+        lastActionSheet = [UIActionSheet showFromBarButtonItem:container animated:YES withTitle:title cancelButtonTitle:cancelButtonTitle
                       destructiveButtonTitle:destructiveButtonTitle otherButtonTitles:otherButtonTitles
                                     tapBlock:^(UIActionSheet * _Nonnull actionSheet, NSInteger buttonIndex) {
+                                        lastActionSheet = nil;
                                         if (tapBlock) {
                                             alertController.cancelButtonIndex = actionSheet.cancelButtonIndex;
                                             alertController.destructiveButtonIndex = actionSheet.destructiveButtonIndex;

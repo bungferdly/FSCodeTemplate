@@ -315,24 +315,23 @@
     if (req.response.error) {
         if (req.retryCount >= 0 && !req.errorHidden) {
             [SVProgressHUD dismiss];
-            if (self.showDebugDetails) {
-                NSData *errDetails = req.response.error.userInfo[@"com.alamofire.serialization.response.error.data"];
-                [FSAlertController showWithTitle:NSLocalizedString(@"Error",nil) message:[req.response.error localizedDescription]
-                               cancelButtonTitle:NSLocalizedString(@"Dismiss", nil) destructiveButtonTitle:nil
-                               otherButtonTitles:errDetails ? @[@"Debug Details"] : nil container:nil
-                                        tapBlock:^(FSAlertController * _Nonnull controller, NSInteger buttonIndex) {
-                                            if (buttonIndex == controller.firstOtherButtonIndex) {
-                                                FSWebController *wc = [FSWebController fs_newController];
-                                                wc.navigationItem.title = @"Error Details";
-                                                [wc view];
-                                                [wc.webView loadHTMLString:[[NSString alloc] initWithData:errDetails encoding:NSUTF8StringEncoding]
-                                                                   baseURL:[NSURL URLWithString:self.baseURL]];
-                                                
-                                                UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:wc];
-                                                [[UIViewController fs_topViewController] presentViewController:nc animated:YES completion:nil];
-                                            }
-                                        }];
-            }
+            
+            NSData *errDetails = self.showDebugDetails ? req.response.error.userInfo[@"com.alamofire.serialization.response.error.data"] : nil;
+            [FSAlertController showWithTitle:NSLocalizedString(@"Error",nil) message:[req.response.error localizedDescription]
+                           cancelButtonTitle:NSLocalizedString(@"Dismiss", nil) destructiveButtonTitle:nil
+                           otherButtonTitles:errDetails ? @[@"Debug Details"] : nil container:nil
+                                    tapBlock:^(FSAlertController * _Nonnull controller, NSInteger buttonIndex) {
+                                        if (buttonIndex == controller.firstOtherButtonIndex) {
+                                            FSWebController *wc = [FSWebController fs_newController];
+                                            wc.navigationItem.title = @"Error Details";
+                                            [wc view];
+                                            [wc.webView loadHTMLString:[[NSString alloc] initWithData:errDetails encoding:NSUTF8StringEncoding]
+                                                               baseURL:[NSURL URLWithString:self.baseURL]];
+                                            
+                                            UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:wc];
+                                            [[UIViewController fs_topViewController] presentViewController:nc animated:YES completion:nil];
+                                        }
+                                    }];
         }
         req.response = nil;
         return;

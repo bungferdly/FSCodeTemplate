@@ -82,16 +82,20 @@
     [[FSAccountManager sharedManager] addDelegate:self];
 }
 
+- (void)setBaseURL:(NSString *)baseURL
+{
+    if (!self.httpRequest || ![_baseURL isEqualToString:baseURL]) {
+        self.httpRequest = [[AFHTTPRequestOperationManager alloc] initWithBaseURL:[NSURL URLWithString:baseURL]];
+        self.jsonRequest = [[AFHTTPRequestOperationManager alloc] initWithBaseURL:[NSURL URLWithString:baseURL]];
+        self.jsonRequest.requestSerializer = [AFJSONRequestSerializer serializer];
+    }
+    _baseURL = baseURL;
+}
+
 - (void)startRequest:(FSRequest *)object withCompletion:(void (^)(FSResponse *))completion
 {
     NSParameterAssert(self.baseURL);
     NSParameterAssert(object);
-    
-    if (!self.httpRequest) {
-        self.httpRequest = [[AFHTTPRequestOperationManager alloc] initWithBaseURL:[NSURL URLWithString:self.baseURL]];
-        self.jsonRequest = [[AFHTTPRequestOperationManager alloc] initWithBaseURL:[NSURL URLWithString:self.baseURL]];
-        self.jsonRequest.requestSerializer = [AFJSONRequestSerializer serializer];
-    }
     
     //setup fullpath
     NSString *fullPath = object.fullPath;

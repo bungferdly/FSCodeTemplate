@@ -370,6 +370,7 @@
     if (![self.requests containsObject:request]) {
         return;
     }
+    request.completion = nil;
     [self.requests removeObject:request];
     [self performSelector:@selector(calculateHUD:) withObject:request afterDelay:0];
 }

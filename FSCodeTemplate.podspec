@@ -39,7 +39,7 @@ For now it only consist of :
 
   # s.public_header_files = 'Pod/**/*.h'
   # s.frameworks = 'UIKit', 'MapKit'
-  s.dependency 'AFNetworking'
+  s.dependency 'AFNetworking', '2.6.2'
   s.dependency 'SVProgressHUD'
   s.dependency 'JSONModel'
   s.dependency 'NSURL+QueryDictionary'

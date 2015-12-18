@@ -22,4 +22,20 @@
     }
 }
 
+- (void)setFs_borderColor:(UIColor *)fs_borderColor
+{
+    self.layer.borderColor = fs_borderColor.CGColor;
+}
+
+- (void)setFs_borderWidth:(CGFloat)fs_borderWidth
+{
+    self.layer.borderWidth = fs_borderWidth;
+}
+
+- (void)setFs_cornerRadius:(CGFloat)fs_cornerRadius
+{
+    self.layer.cornerRadius = fs_cornerRadius;
+    self.clipsToBounds = YES;
+}
+
 @end

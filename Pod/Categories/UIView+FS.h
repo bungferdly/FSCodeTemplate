@@ -10,6 +10,10 @@
 
 @interface UIView (FS)
 
+@property (assign, nonatomic) CGFloat fs_borderWidth;
+@property (strong, nonatomic) UIColor *fs_borderColor;
+@property (assign, nonatomic) CGFloat fs_cornerRadius;
+
 - (void)fs_subviewsMapping:(void (^)(UIView *view, BOOL *stop))map;
 
 @end

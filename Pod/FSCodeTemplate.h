@@ -28,7 +28,9 @@
 #import "FSPhotoImageView.h"
 #import "UIViewController+FS.h"
 #import "UIView+FS.h"
+#import "UIImage+FS.h"
 #import "FSPageController.h"
 #import "FSAlertController.h"
+#import "FSButton.h"
 
 #endif

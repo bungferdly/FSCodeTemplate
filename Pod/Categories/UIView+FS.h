@@ -13,6 +13,7 @@
 @property (assign, nonatomic) CGFloat fs_borderWidth;
 @property (strong, nonatomic) UIColor *fs_borderColor;
 @property (assign, nonatomic) CGFloat fs_cornerRadius;
+@property (strong, nonatomic) id fs_content;
 
 - (void)fs_subviewsMapping:(void (^)(UIView *view, BOOL *stop))map;
 

@@ -16,6 +16,9 @@
 #endif
 
 #define FSOSVersion [[UIDevice currentDevice].systemVersion floatValue]
+#define FSClass(a,b) (([a isKindOfClass:[NSArray class]] ? \
+                      ([[(NSArray *)a firstObject] isKindOfClass:[b class]] ? a : nil) : \
+                      ([a isKindOfClass:[b class]] ? a : nil)))
 
 #import "FSAppDelegate.h"
 #import "FSManager.h"
@@ -32,5 +35,6 @@
 #import "FSPageController.h"
 #import "FSAlertController.h"
 #import "FSButton.h"
+#import "FSTableViewCell.h"
 
 #endif

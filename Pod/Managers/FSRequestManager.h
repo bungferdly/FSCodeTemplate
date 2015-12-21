@@ -54,6 +54,7 @@ typedef enum : NSUInteger {
 @property (readonly, nonatomic) NSMutableDictionary *dictionaryObject;
 @property (readonly, nonatomic) NSMutableArray *arrayObject;
 @property (strong, nonatomic) NSError *error;
+@property (strong, nonatomic) NSHTTPURLResponse *httpResponse;
 
 - (void)save;
 

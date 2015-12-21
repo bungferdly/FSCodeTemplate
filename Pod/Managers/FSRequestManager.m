@@ -183,6 +183,7 @@
         
         FSResponse *response = [[FSResponse alloc] init];
         response.error = error;
+        response.httpResponse = operation.response;
         object.response = response;
         
         if (object.retryCount < 0 && (error.code <= 0 || error.code == 408)) {

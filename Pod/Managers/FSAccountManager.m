@@ -7,8 +7,16 @@
 //
 
 #import "FSAccountManager.h"
+#import "FSKeychainManager.h"
+
+#define FSRequestManagerLoggedIn @"FSAccountManagerLoggedIn"
 
 @implementation FSAccountManager
+
+- (void)didLoad
+{
+    self.loggedIn = FSKeychainLoad(FSRequestManagerLoggedIn);
+}
 
 - (void)setLoggedIn:(BOOL)loggedIn
 {
@@ -17,6 +25,8 @@
 
 - (void)setLoggedIn:(BOOL)loggedIn withUserInfo:(id)userInfo
 {
+    FSKeychainSave(@(loggedIn), FSRequestManagerLoggedIn);
+    
     if ([self superclass] == [FSAccountManager class]) {
         [[FSAccountManager sharedManager] setLoggedIn:loggedIn withUserInfo:userInfo];
     }

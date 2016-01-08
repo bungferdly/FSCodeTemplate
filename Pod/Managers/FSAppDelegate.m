@@ -110,4 +110,16 @@
     }
 }
 
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
+{
+    BOOL ret = NO;
+    
+    for (FSManager *manager in [FSManager allManagers]) {
+        if ([manager respondsToSelector:@selector(application:openURL:sourceApplication:annotation:)]) {
+            ret |= [manager application:application openURL:url sourceApplication:sourceApplication annotation:annotation];
+        }
+    }
+    return ret;
+}
+
 @end

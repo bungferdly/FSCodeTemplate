@@ -30,6 +30,15 @@
 
 @end
 
-@interface FSModel : JSONModel
+@protocol FSAbstractModelProtocol <NSObject>
+
+- (instancetype)initWithDictionary:(NSDictionary *)dictionary;
+- (NSDictionary *)dictionaryValue;
+- (void)mergeWithModel:(id)model;
+
+@end
+
+
+@interface FSModel : JSONModel<FSAbstractModelProtocol>
 
 @end

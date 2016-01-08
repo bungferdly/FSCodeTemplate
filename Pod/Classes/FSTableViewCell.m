@@ -7,6 +7,7 @@
 //
 
 #import "FSTableViewCell.h"
+#import "UIView+FS.h"
 
 @interface FSTableViewCell ()
 
@@ -22,14 +23,15 @@
 {
     [super awakeFromNib];
     
-    self.highlightView = [[UIView alloc] initWithFrame:self.bounds];
-    self.highlightView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-    self.highlightView.backgroundColor = [UIColor blackColor];
-    self.highlightView.alpha = 0;
-    self.highlightView.userInteractionEnabled = NO;
-    [self addSubview:self.highlightView];
-    
     if (self.selectionStyle != UITableViewCellSelectionStyleNone) {
+        
+        self.highlightView = [[UIView alloc] initWithFrame:self.bounds];
+        self.highlightView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+        self.highlightView.backgroundColor = [UIColor blackColor];
+        self.highlightView.alpha = 0;
+        self.highlightView.userInteractionEnabled = NO;
+        [self addSubview:self.highlightView];
+        
         self.selectionStyle = UITableViewCellSelectionStyleNone;
     }
 }
@@ -49,6 +51,52 @@
 + (CGFloat)heightForTableView:(UITableView *)tableView andContent:(id)content
 {
     return tableView.rowHeight;
+}
+
+- (void)setFs_content:(id)fs_content
+{
+    
+}
+
+@end
+
+@interface FSCollectionViewCell ()
+
+@property (strong, nonatomic) UIView *highlightView;
+
+@end
+
+@implementation FSCollectionViewCell
+
+@synthesize highlighted = _highlighted;
+
+- (void)awakeFromNib
+{
+    [super awakeFromNib];
+    
+    self.highlightView = [[UIView alloc] initWithFrame:self.bounds];
+    self.highlightView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+    self.highlightView.backgroundColor = [UIColor blackColor];
+    self.highlightView.alpha = 0;
+    self.highlightView.userInteractionEnabled = NO;
+    [self addSubview:self.highlightView];
+}
+
+- (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated
+{
+    _highlighted = highlighted;
+    if (highlighted) {
+        self.highlightView.alpha = 0.2;
+    } else if (self.alpha != 0){
+        [UIView animateWithDuration:0.2 animations:^{
+            self.highlightView.alpha = 0;
+        }];
+    }
+}
+
+- (void)setFs_content:(id)fs_content
+{
+    
 }
 
 @end

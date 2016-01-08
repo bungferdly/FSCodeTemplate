@@ -14,4 +14,7 @@
 + (instancetype)fs_newController;
 - (void)fs_setAsRootViewController;
 
+- (IBAction)fs_popViewControllerAnimated:(id)sender;
+- (IBAction)fs_dismissViewControllerAnimated:(id)sender;
+
 @end

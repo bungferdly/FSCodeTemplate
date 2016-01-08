@@ -53,4 +53,18 @@
     return rootNC;
 }
 
+- (IBAction)fs_popViewControllerAnimated:(id)sender
+{
+    [self.navigationController popViewControllerAnimated:[sender tag]];
+}
+
+- (void)fs_dismissViewControllerAnimated:(id)sender
+{
+    if (self.presentingViewController) {
+        [self dismissViewControllerAnimated:[sender tag] completion:nil];
+    } else {
+        [self fs_popViewControllerAnimated:sender];
+    }
+}
+
 @end

@@ -56,7 +56,7 @@
         if ([data objectForKey:key]) {
             Class cls = model[0];
             
-            JSONModel *modelObject = [[cls alloc] initWithDictionary:mData error:nil];
+            NSObject<FSAbstractModelProtocol> *modelObject = [[cls alloc] initWithDictionary:mData];
             if (!modelObject) {
                 FSLog(@"Failed to create object model %@.", cls);
                 return mData;
@@ -100,9 +100,9 @@
 
 - (id)cacheWithAppendModel:(id)object
 {
-    JSONModel *cache = [self cacheForObject:object];
+    NSObject<FSAbstractModelProtocol> *cache = [self cacheForObject:object];
     if (cache != object) {
-        [cache mergeFromDictionary:[object toDictionary] useKeyMapping:NO];
+        [cache mergeWithModel:cache];
     }
     return cache;
 }
@@ -122,6 +122,8 @@
         }
     } else if ([data respondsToSelector:@selector(toDictionary)]) {
         mData = [self parseModel:[data toDictionary]];
+    } else if ([data respondsToSelector:@selector(dictionaryValue)]) {
+        mData = [self parseModel:[data dictionaryValue]];
     } else if ([data isKindOfClass:[NSDictionary class]]) {
         mData = [self parseModel:data];
     }
@@ -154,6 +156,21 @@
 - (void)encodeWithCoder:(NSCoder *)encoder
 {
     [encoder encodeObject:[self toDictionary] forKey:@"json"];
+}
+
+- (instancetype)initWithDictionary:(NSDictionary *)dictionary
+{
+    return [self initWithDictionary:dictionary error:nil];
+}
+
+- (NSDictionary *)dictionaryValue
+{
+    return [self toDictionary];
+}
+
+- (void)mergeWithModel:(id)model
+{
+    [self mergeFromDictionary:[model dictionaryValue] useKeyMapping:NO];
 }
 
 + (BOOL)propertyIsOptional:(NSString*)propertyName

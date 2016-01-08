@@ -16,3 +16,7 @@
 + (CGFloat)heightForTableView:(UITableView *)tableView andContent:(id)content;
 
 @end
+
+@interface FSCollectionViewCell : UICollectionViewCell
+
+@end

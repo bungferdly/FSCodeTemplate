@@ -9,13 +9,18 @@
 #import <UIKit/UIKit.h>
 
 @protocol FSPageControllerDelegate;
+@class FSSegmentedControl;
 
-@interface FSPageController : UIPageViewController
+@interface FSPageController : UIViewController
 
 @property (weak, nonatomic)     id<FSPageControllerDelegate> contentDelegate;
 @property (strong, nonatomic)   NSArray *controllers;
 @property (readonly, nonatomic) CGFloat offsetSelectedIndex;
 @property (assign, nonatomic)   NSUInteger selectedIndex;
+@property (assign, nonatomic)   BOOL stopAtEdges;
+@property (strong, nonatomic)   IBOutlet id pageControl;
+@property (strong, nonatomic)   IBOutlet UIView *pageContainerView;
+@property (strong, nonatomic)   IBOutlet UIPageViewController *pageViewController;
 
 - (void)setSelectedIndex:(NSUInteger)selectedIndex animated:(BOOL)animated;
 

@@ -10,8 +10,8 @@
 
 @interface FSTableViewCell : UITableViewCell
 
-@property (strong, nonatomic) IBOutlet UILabel *titleLabel;
-@property (strong, nonatomic) IBOutlet UILabel *subtitleLabel;
+@property (strong, nonatomic) IBOutlet UILabel *textLabel;
+@property (strong, nonatomic) IBOutlet UILabel *detailTextLabel;
 @property (strong, nonatomic) IBOutlet UIImageView *imageView;
 @property (weak  , nonatomic) IBOutlet id delegate;
 

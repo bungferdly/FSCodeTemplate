@@ -31,3 +31,9 @@
 - (void)pageControllerDidScroll:(FSPageController *)pageController;
 
 @end
+
+@interface UIViewController (FSPageController)
+
+@property (readonly, nonatomic) FSPageController *fs_pageController;
+
+@end

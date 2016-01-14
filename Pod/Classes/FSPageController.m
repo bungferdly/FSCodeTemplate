@@ -171,37 +171,15 @@
 
 @end
 
-//@implementation FSPageContainerController
-//
-//- (instancetype)initWithCoder:(NSCoder *)aDecoder
-//{
-//    self = [super initWithCoder:aDecoder];
-//    if (!self.pageController) {
-//        _pageController = [[FSPageController alloc] init];
-//        _pageController.delegate = self;
-//        [self addChildViewController:self.pageController];
-//    }
-//    return self;
-//}
-//
-//- (void)viewDidLoad
-//{
-//    [super viewDidLoad];
-//    if (!self.pageContainerView) {
-//        self.pageContainerView = self.view;
-//    }
-//    
-//    [self.pageContainerView addSubview:self.pageController.view];
-//    self.pageController.view.frame = self.pageContainerView.bounds;
-//    self.pageController.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-//}
-//
-//- (void)pageControllerDidScroll:(FSPageController *)pageController
-//{
-//    if (self.pageControl.numberOfPages != pageController.controllers.count) {
-//        self.pageControl.numberOfPages = pageController.controllers.count;
-//    }
-//    self.pageControl.currentPage = pageController.selectedIndex;
-//}
-//
-//@end
+@implementation UIViewController (FSPageController)
+
+- (FSPageController *)fs_pageController
+{
+    FSPageController *vc = self.parentViewController;
+    while (vc && ![vc isKindOfClass:[FSPageController class]]) {
+        vc = vc.parentViewController;
+    }
+    return vc;
+}
+
+@end

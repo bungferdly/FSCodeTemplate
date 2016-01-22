@@ -16,9 +16,8 @@
 #endif
 
 #define FSOSVersion [[UIDevice currentDevice].systemVersion floatValue]
-#define FSClass(a,b) (([a isKindOfClass:[NSArray class]] ? \
-                      ([[(NSArray *)a firstObject] isKindOfClass:[b class]] ? a : nil) : \
-                      ([a isKindOfClass:[b class]] ? a : nil)))
+#define FSKindOf(obj, cls) ((cls *)([obj isKindOfClass:[cls class]] ? obj : nil))
+#define FSArrayKindOf(obj, cls) ((NSArray *)(FSKindOf(FSKindOf(obj, NSArray).firstObject, cls) ? obj : nil))
 
 #import "UIViewController+FS.h"
 #import "UIView+FS.h"

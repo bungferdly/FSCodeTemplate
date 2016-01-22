@@ -10,6 +10,7 @@
 
 @interface UIImage (FS)
 
++ (UIImage *)fs_imageNamed:(NSString *)name;
 - (UIImage *)fs_imageWithColor:(UIColor *)color;
 
 @end

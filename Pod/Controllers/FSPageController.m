@@ -175,9 +175,9 @@
 
 - (FSPageController *)fs_pageController
 {
-    FSPageController *vc = self.parentViewController;
+    id vc = self.parentViewController;
     while (vc && ![vc isKindOfClass:[FSPageController class]]) {
-        vc = vc.parentViewController;
+        vc = [vc parentViewController];
     }
     return vc;
 }

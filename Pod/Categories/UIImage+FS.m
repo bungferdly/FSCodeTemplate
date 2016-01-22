@@ -10,6 +10,25 @@
 
 @implementation UIImage (FS)
 
++ (UIImage *)fs_imageNamed:(NSString *)name
+{
+    static NSMutableDictionary *cache;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        cache = [NSMutableDictionary dictionary];
+    });
+    if (!name) {
+        return nil;
+    }
+    if (!cache[name]) {
+        UIImage *image = [UIImage imageNamed:name];
+        if (image) {
+            cache[name] = image;
+        }
+    }
+    return cache[name];
+}
+
 - (UIImage *)fs_imageWithColor:(UIColor *)color
 {
     UIGraphicsBeginImageContextWithOptions(self.size, NO, self.scale);

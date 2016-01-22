@@ -70,7 +70,7 @@
 {
     self.requests = [NSMutableArray array];
     self.responses = [NSMapTable strongToWeakObjectsMapTable];
-    self.errorMessageComplexKey = @"error";
+    self.errorMessageComplexKeys = @[@"error", @"errors"];
     self.diskCache = [[TMDiskCache alloc] initWithName:FSRequestManagerCacheName];
     
     [[AFNetworkReachabilityManager sharedManager] setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
@@ -133,13 +133,19 @@
         
         FSResponse *response = [[FSResponse alloc] init];
         response.cacheKey = fullPath;
+        response.httpResponse = operation.response;
         
-        if ([data isKindOfClass:[NSDictionary class]] && self.errorMessageComplexKey.length) {
-            id error = [(NSDictionary *)data fs_valueForJSONComplexKey:self.errorMessageComplexKey];
-            if (error) {
-                response.error = [NSError errorWithDomain:NSCocoaErrorDomain
-                                                     code:operation.response.statusCode
-                                                 userInfo:@{NSLocalizedDescriptionKey : error}];
+        if ([data isKindOfClass:[NSDictionary class]] && self.errorMessageComplexKeys.count) {
+            for (NSString *key in self.errorMessageComplexKeys) {
+                id error = [(NSDictionary *)data fs_valueForJSONComplexKey:key];
+                if (error) {
+                    if ([error isKindOfClass:[NSArray class]]) {
+                        error = [(NSArray *)error componentsJoinedByString:@"\n"];
+                    }
+                    response.error = [NSError errorWithDomain:NSCocoaErrorDomain
+                                                         code:operation.response.statusCode
+                                                     userInfo:@{NSLocalizedDescriptionKey : error}];
+                }
             }
         } else {
             response.error = nil;

@@ -63,8 +63,8 @@ typedef enum : NSUInteger {
 @interface FSRequestManager : FSManager
 
 @property (strong, nonatomic) NSString *baseURL;
-@property (strong, nonatomic) NSString *resultCompexKey;
-@property (strong, nonatomic) NSString *errorMessageComplexKey;
+@property (strong, nonatomic) NSArray *resultCompexKeys;
+@property (strong, nonatomic) NSArray *errorMessageComplexKeys;
 @property (assign, nonatomic) BOOL showDebugDetails;
 
 - (void)startRequest:(FSRequest *)request withCompletion:(void(^)(FSResponse *response))completion;

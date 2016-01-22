@@ -35,6 +35,12 @@
     self.value = _value;
 }
 
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    self.value = self.value;
+}
+
 - (void)controlDidSelect:(UIButton *)sender
 {
     if (self.value != [self.segments indexOfObject:sender]) {

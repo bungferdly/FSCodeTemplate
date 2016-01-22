@@ -18,6 +18,10 @@
 
 @end
 
+@interface FSImagePickerController : UIImagePickerController
+
+@end
+
 @implementation FSPhotoImageView
 
 - (id)initWithCoder:(NSCoder *)aDecoder
@@ -69,7 +73,7 @@
 
 - (void)showImagePicker:(UIImagePickerControllerSourceType)sourceType
 {
-    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+    FSImagePickerController *picker = [[FSImagePickerController alloc] init];
     picker.delegate = self;
     picker.allowsEditing = YES;
     picker.sourceType = sourceType;
@@ -91,6 +95,15 @@
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
 {
     [picker dismissViewControllerAnimated:YES completion:NULL];
+}
+
+@end
+
+@implementation FSImagePickerController
+
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations
+{
+    return [self.presentingViewController supportedInterfaceOrientations];
 }
 
 @end

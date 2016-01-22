@@ -20,6 +20,10 @@
                       ([[(NSArray *)a firstObject] isKindOfClass:[b class]] ? a : nil) : \
                       ([a isKindOfClass:[b class]] ? a : nil)))
 
+#import "UIViewController+FS.h"
+#import "UIView+FS.h"
+#import "UIImage+FS.h"
+
 #import "FSAppDelegate.h"
 #import "FSManager.h"
 #import "FSAccountManager.h"
@@ -27,14 +31,16 @@
 #import "FSJSONParserManager.h"
 #import "FSResponderManager.h"
 #import "FSKeychainManager.h"
-#import "FSSegmentedControl.h"
-#import "FSPhotoImageView.h"
-#import "UIViewController+FS.h"
-#import "UIView+FS.h"
-#import "UIImage+FS.h"
+
 #import "FSPageController.h"
 #import "FSAlertController.h"
+
+#import "FSSegmentedControl.h"
+#import "FSPhotoImageView.h"
 #import "FSButton.h"
 #import "FSTableViewCell.h"
+#import "FSCollectionViewCell.h"
+#import "FSTableView.h"
+#import "FSTextField.h"
 
 #endif

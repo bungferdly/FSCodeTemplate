@@ -92,11 +92,11 @@
     }
 }
 
-- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(nonnull void (^)(UIBackgroundFetchResult))completionHandler
 {
     for (FSManager *manager in [FSManager allManagers]) {
-        if ([manager respondsToSelector:@selector(application:didReceiveRemoteNotification:)]) {
-            [manager application:application didReceiveRemoteNotification:userInfo];
+        if ([manager respondsToSelector:@selector(application:didReceiveRemoteNotification:fetchCompletionHandler:)]) {
+            [manager application:application didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
         }
     }
 }

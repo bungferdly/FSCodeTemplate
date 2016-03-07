@@ -40,6 +40,12 @@
     FSAlertController *alertController = [[FSAlertController alloc] init];
     
     if (FSOSVersion >= 8) {
+        
+        //iOS 9 bug, the action sheet is hidden behind keyboard
+        if (FSOSVersion >= 9 && container) {
+            [[UIViewController fs_topViewController].view endEditing:YES];
+        }
+        
         [UIAlertController showInViewController:[UIViewController fs_topViewController] withTitle:title message:message
                                  preferredStyle:container ? UIAlertControllerStyleActionSheet : UIAlertControllerStyleAlert
                               cancelButtonTitle:cancelButtonTitle destructiveButtonTitle:destructiveButtonTitle otherButtonTitles:otherButtonTitles

@@ -10,6 +10,7 @@
 
 @interface FSTextField : UITextField
 
-@property (assign, nonatomic) NSUInteger maximumTextLength;
+@property (assign, nonatomic) IBInspectable NSUInteger maxTextLen;
+@property (assign, nonatomic) IBInspectable CGPoint textPadding;
 
 @end

@@ -1,13 +1,13 @@
 //
-//  RadicalConvention.h
+//  FSCodeTemplate.h
 //  Pods
 //
 //  Created by Ferdly Sethio on 9/9/15.
 //
 //
 
-#ifndef Pods_RadicalConvention_h
-#define Pods_RadicalConvention_h
+#ifndef Pods_FSCodeTemplate_h
+#define Pods_FSCodeTemplate_h
 
 #ifdef DEBUG
 #define FSLog(...) NSLog(@"%s(%p) %@", __PRETTY_FUNCTION__, self, [NSString stringWithFormat:__VA_ARGS__])
@@ -36,6 +36,7 @@
 
 #import "FSSegmentedControl.h"
 #import "FSPhotoImageView.h"
+#import "FSLabel.h"
 #import "FSButton.h"
 #import "FSTableViewCell.h"
 #import "FSCollectionViewCell.h"

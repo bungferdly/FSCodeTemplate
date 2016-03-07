@@ -7,17 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		713FECC9421BB82741626D49 /* Pods_FSExample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FDE892C5A5B7691D262FEA42 /* Pods_FSExample.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
-		B841F08F1BABE9F300AD0971 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B841F0771BABE9F300AD0971 /* AppDelegate.m */; settings = {ASSET_TAGS = (); }; };
-		B841F0911BABE9F300AD0971 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B841F0791BABE9F300AD0971 /* LaunchScreen.storyboard */; settings = {ASSET_TAGS = (); }; };
-		B841F0921BABE9F300AD0971 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B841F07A1BABE9F300AD0971 /* main.m */; settings = {ASSET_TAGS = (); }; };
-		B841F0931BABE9F300AD0971 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B841F07B1BABE9F300AD0971 /* Main.storyboard */; settings = {ASSET_TAGS = (); }; };
-		B841F0941BABE9F300AD0971 /* FSEFirst.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B841F07E1BABE9F300AD0971 /* FSEFirst.storyboard */; settings = {ASSET_TAGS = (); }; };
-		B841F0951BABE9F300AD0971 /* FSEFirstController.m in Sources */ = {isa = PBXBuildFile; fileRef = B841F0801BABE9F300AD0971 /* FSEFirstController.m */; settings = {ASSET_TAGS = (); }; };
-		B841F0961BABE9F300AD0971 /* FSESecond.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B841F0821BABE9F300AD0971 /* FSESecond.storyboard */; settings = {ASSET_TAGS = (); }; };
-		B841F0971BABE9F300AD0971 /* FSESecondController.m in Sources */ = {isa = PBXBuildFile; fileRef = B841F0841BABE9F300AD0971 /* FSESecondController.m */; settings = {ASSET_TAGS = (); }; };
-		B841F0981BABE9F300AD0971 /* FSEAccountManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B841F0881BABE9F300AD0971 /* FSEAccountManager.m */; settings = {ASSET_TAGS = (); }; };
-		B841F09A1BABE9F300AD0971 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B841F08D1BABE9F300AD0971 /* Assets.xcassets */; settings = {ASSET_TAGS = (); }; };
+		713FECC9421BB82741626D49 /* Pods_FSExample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FDE892C5A5B7691D262FEA42 /* Pods_FSExample.framework */; };
+		B841F08F1BABE9F300AD0971 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B841F0771BABE9F300AD0971 /* AppDelegate.m */; };
+		B841F0911BABE9F300AD0971 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B841F0791BABE9F300AD0971 /* LaunchScreen.storyboard */; };
+		B841F0921BABE9F300AD0971 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B841F07A1BABE9F300AD0971 /* main.m */; };
+		B841F0931BABE9F300AD0971 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B841F07B1BABE9F300AD0971 /* Main.storyboard */; };
+		B841F0941BABE9F300AD0971 /* FSEFirst.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B841F07E1BABE9F300AD0971 /* FSEFirst.storyboard */; };
+		B841F0951BABE9F300AD0971 /* FSEFirstController.m in Sources */ = {isa = PBXBuildFile; fileRef = B841F0801BABE9F300AD0971 /* FSEFirstController.m */; };
+		B841F0961BABE9F300AD0971 /* FSESecond.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B841F0821BABE9F300AD0971 /* FSESecond.storyboard */; };
+		B841F0971BABE9F300AD0971 /* FSESecondController.m in Sources */ = {isa = PBXBuildFile; fileRef = B841F0841BABE9F300AD0971 /* FSESecondController.m */; };
+		B841F0981BABE9F300AD0971 /* FSEAccountManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B841F0881BABE9F300AD0971 /* FSEAccountManager.m */; };
+		B841F09A1BABE9F300AD0971 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B841F08D1BABE9F300AD0971 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */

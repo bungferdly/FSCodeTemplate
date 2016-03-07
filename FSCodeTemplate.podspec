@@ -49,4 +49,5 @@ For now it only consist of :
   s.dependency 'UIAlertView+Blocks'
   s.dependency 'UIActionSheet+Blocks'
   s.dependency 'SDWebImage'
+  s.dependency 'DTCoreText'
 end

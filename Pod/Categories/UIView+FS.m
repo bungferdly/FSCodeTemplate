@@ -22,25 +22,35 @@
     }
 }
 
-- (void)setFs_borderColor:(UIColor *)fs_borderColor
+- (void)setBorderColor:(UIColor *)borderColor
 {
-    self.layer.borderColor = fs_borderColor.CGColor;
+    self.layer.borderColor = borderColor.CGColor;
 }
 
-- (void)setFs_borderWidth:(CGFloat)fs_borderWidth
+- (void)setBorderWidth:(CGFloat)borderWidth
 {
-    self.layer.borderWidth = fs_borderWidth;
+    self.layer.borderWidth = borderWidth;
 }
 
-- (void)setFs_cornerRadius:(CGFloat)fs_cornerRadius
+- (void)setCornerRadius:(CGFloat)cornerRadius
 {
-    self.layer.cornerRadius = fs_cornerRadius;
+    self.layer.cornerRadius = cornerRadius;
     self.clipsToBounds = YES;
 }
 
-- (void)setFs_content:(id)fs_content
+- (UIColor *)borderColor
 {
-    
+    return [UIColor colorWithCGColor:self.layer.borderColor];
+}
+
+- (CGFloat)borderWidth
+{
+    return self.layer.borderWidth;
+}
+
+- (CGFloat)cornerRadius
+{
+    return self.layer.cornerRadius;
 }
 
 @end

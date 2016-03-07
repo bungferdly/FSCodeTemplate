@@ -7,11 +7,13 @@
 //
 
 #import "FSResponderManager.h"
+#import "FSCodeTemplate.h"
 
 @interface UIView (FSResponderManager)
 
 - (id)fs_getFirstResponder;
 - (id)fs_getNextResponder;
+- (UIScrollView *)fs_getParentScrollView;
 
 @end
 
@@ -28,20 +30,29 @@
 - (void)didLoad
 {
     self.tapGR = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(endEditing)];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willShowKeyboard) name:UIKeyboardWillShowNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didHideKeyboard) name:UIKeyboardDidHideNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willShowKeyboard:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willHideKeyboard:) name:UIKeyboardWillHideNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willChangeFrameKeyboard:) name:UIKeyboardWillChangeFrameNotification object:nil];
 }
 
-- (void)willShowKeyboard
+- (void)willShowKeyboard:(NSNotification *)notification
 {
     [self.window addGestureRecognizer:self.tapGR];
     self.currentResponder = [self.window fs_getFirstResponder];
     [self calculateNextReponder];
+    [self calculateBottomInsetScrollView:notification.userInfo];
 }
 
-- (void)didHideKeyboard
+- (void)willChangeFrameKeyboard:(NSNotification *)notification
+{
+    [self calculateBottomInsetScrollView:notification.userInfo];
+}
+
+- (void)willHideKeyboard:(NSNotification *)notification
 {
     [self.window removeGestureRecognizer:self.tapGR];
+    self.currentResponder = nil;
+    self.nextResponder = nil;
 }
 
 - (void)calculateNextReponder
@@ -65,6 +76,30 @@
     self.nextResponder = nil;
     [self.currentResponder becomeFirstResponder];
     [self calculateNextReponder];
+}
+
+- (void)calculateBottomInsetScrollView:(NSDictionary *)userInfo
+{
+    UIScrollView *scrollView = [self.currentResponder fs_getParentScrollView];
+    if (![scrollView isMemberOfClass:[UIScrollView class]]) {
+        return;
+    }
+    
+    UIEdgeInsets inset = scrollView.contentInset;
+    CGRect keyboardRect = [userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    CGRect keyboardRectInView = [scrollView.window convertRect:keyboardRect toView:scrollView.superview];
+    inset.bottom = CGRectGetMaxY(scrollView.frame) - CGRectGetMinY(keyboardRectInView);
+    
+    if (scrollView.contentInset.bottom != inset.bottom) {
+        scrollView.contentInset = inset;
+        if ([self.currentResponder superview] != scrollView) {
+            [scrollView scrollRectToVisible:[self.currentResponder superview].frame animated:NO];
+        }
+        
+        UIEdgeInsets scrollerInset = scrollView.scrollIndicatorInsets;
+        scrollerInset.bottom = inset.bottom;
+        scrollView.scrollIndicatorInsets = scrollerInset;
+    }
 }
 
 - (void)endEditing
@@ -101,12 +136,24 @@
     }
 }
 
-- (id)fs_getNextResponder
+- (UIScrollView *)fs_getParentScrollView
 {
     id tableView = self.superview;
     while (tableView && ![tableView isKindOfClass:[UITableView class]]) {
         tableView = [tableView superview];
     }
+    if (!tableView) {
+        tableView = self.superview;
+        while (tableView && ![tableView isKindOfClass:[UIScrollView class]]) {
+            tableView = [tableView superview];
+        }
+    }
+    return tableView;
+}
+
+- (id)fs_getNextResponder
+{
+    id tableView = [self fs_getParentScrollView];
     __block UIView *nextResponder = nil;
     __block CGPoint minPos = [self convertPoint:CGPointZero toView:self.window];
     __block CGPoint maxPos = CGPointMake(CGFLOAT_MAX, CGFLOAT_MAX);

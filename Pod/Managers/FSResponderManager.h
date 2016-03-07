@@ -7,11 +7,12 @@
 //
 
 #import "FSManager.h"
+#import "FSButton.h"
 
 @interface FSResponderManager : FSManager
 
 @end
 
-@interface FSResponderButton : UIButton
+@interface FSResponderButton : FSButton
 
 @end

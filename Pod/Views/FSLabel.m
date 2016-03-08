@@ -26,8 +26,9 @@
         self.htmlView = [[DTAttributedTextContentView alloc] initWithFrame:self.bounds];
         self.htmlView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         self.htmlView.backgroundColor = [UIColor clearColor];
-        [self addSubview:self.htmlView];
     }
+    self.htmlView.frame = self.bounds;
+    [self addSubview:self.htmlView];
     
     CTTextAlignment textAlignment = 0;
     switch (self.textAlignment) {

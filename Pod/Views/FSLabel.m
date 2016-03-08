@@ -27,7 +27,7 @@
         self.htmlView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         self.htmlView.backgroundColor = [UIColor clearColor];
     }
-    self.htmlView.frame = self.bounds;
+    self.htmlView.frame = CGRectMake(-0.5, -0.5, self.frame.size.width + 1, self.frame.size.height + 1);
     [self addSubview:self.htmlView];
     
     CTTextAlignment textAlignment = 0;
@@ -71,7 +71,12 @@
 
 - (CGSize)intrinsicContentSize
 {
-    return self.htmlView ? [self.htmlView intrinsicContentSize] : [super intrinsicContentSize];
+    if (self.htmlView) {
+        CGSize size = [self.htmlView intrinsicContentSize];
+        return CGSizeMake(size.width - 1, size.height - 1);
+    } else {
+        return [super intrinsicContentSize];
+    }
 }
 
 @end

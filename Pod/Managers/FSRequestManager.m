@@ -247,6 +247,9 @@
         return;
     }
     
+    [self cancelRequest:object];
+    [self addRequest:object];
+    
     //handle refresh token
     if (object.retrying < 30) {
         BOOL shouldRetryingRequest = NO;
@@ -257,6 +260,9 @@
             }
         }
         if (shouldRetryingRequest) {
+            if (shouldRetryingRequest == FSRequestDelayForever) {
+                object.retrying = 0;
+            }
             [self performSelector:@selector(restartRequest:) withObject:object afterDelay:1];
             return;
         }
@@ -267,9 +273,6 @@
             [delegate requestManagerWillStartRequest:object fromCache:NO];
         }
     }
-    
-    [self cancelRequest:object];
-    [self addRequest:object];
     
     AFHTTPRequestOperationManager *requestManager = object.contentType == FSContentTypeForm ? self.httpRequest : self.jsonRequest;
     //setup headers
@@ -311,6 +314,9 @@
 
 - (void)restartRequest:(FSRequest *)request
 {
+    if (![self.requests containsObject:request]) {
+        return;
+    }
     request.retrying++;
     [self startRequest:request withCompletion:request.completion];
 }

@@ -28,6 +28,12 @@ typedef enum : NSUInteger {
     FSContentTypeForm
 } FSContentType;
 
+typedef enum : NSUInteger {
+    FSRequestDelayNone = 0,
+    FSRequestDelayLimited = 1,
+    FSRequestDelayForever = 3,
+} FSRequestDelay;
+
 @protocol AFMultipartFormData;
 
 @interface FSRequest : NSObject
@@ -75,7 +81,7 @@ typedef enum : NSUInteger {
 @protocol FSRequestManagerDelegate <NSObject>
 
 @optional
-- (BOOL)requestManagerRequestShouldDelayRequest:(FSRequest *)request;
+- (FSRequestDelay)requestManagerRequestShouldDelayRequest:(FSRequest *)request;
 - (void)requestManagerWillStartRequest:(FSRequest *)request fromCache:(BOOL)fromCache;
 - (void)requestManagerdidFinishRequest:(FSRequest *)request withResponse:(FSResponse *)response;
 

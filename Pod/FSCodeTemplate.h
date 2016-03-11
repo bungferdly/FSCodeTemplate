@@ -30,6 +30,7 @@
 #import "FSJSONParserManager.h"
 #import "FSResponderManager.h"
 #import "FSKeychainManager.h"
+#import "FSObserverManager.h"
 
 #import "FSPageController.h"
 #import "FSAlertController.h"

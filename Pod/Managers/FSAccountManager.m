@@ -15,7 +15,7 @@
 
 - (void)didLoad
 {
-    self.loggedIn = FSKeychainLoad(FSRequestManagerLoggedIn);
+    self.loggedIn = [FSKeychainLoad(FSRequestManagerLoggedIn) boolValue];
 }
 
 - (void)setLoggedIn:(BOOL)loggedIn

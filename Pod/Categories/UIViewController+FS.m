@@ -44,12 +44,18 @@
 + (instancetype)fs_topViewController
 {
     id rootNC = [UIApplication sharedApplication].delegate.window.rootViewController;
-    if ([rootNC isKindOfClass:[UITabBarController class]]) {
-        rootNC = [rootNC selectedViewController];
+    while (true) {
+        if ([rootNC presentedViewController]) {
+            rootNC = [rootNC presentedViewController];
+        }else if ([rootNC isKindOfClass:[UITabBarController class]]) {
+            rootNC = [rootNC selectedViewController];
+        }else if ([rootNC isKindOfClass:[UINavigationController class]]) {
+            rootNC = [rootNC topViewController];
+        } else {
+            break;
+        }
     }
-    if ([rootNC isKindOfClass:[UINavigationController class]]) {
-        rootNC = [rootNC topViewController];
-    }
+    
     return rootNC;
 }
 

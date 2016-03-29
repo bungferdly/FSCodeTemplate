@@ -13,6 +13,8 @@
 
 @property (strong, nonatomic) DTAttributedTextContentView *htmlView;
 @property (assign, nonatomic) CGSize htmlContentSize;
+@property (assign, nonatomic) CGSize htmlLastSize;
+@property (strong, nonatomic) NSArray *defaultConstraintValue;
 
 @end
 
@@ -34,15 +36,12 @@
     switch (self.textAlignment) {
         case NSTextAlignmentLeft:
             textAlignment = kCTTextAlignmentLeft;
-            self.htmlView.frame = CGRectMake(0, 0, CGFLOAT_WIDTH_UNKNOWN, CGFLOAT_HEIGHT_UNKNOWN);
             break;
         case NSTextAlignmentCenter:
             textAlignment = kCTTextAlignmentCenter;
-            self.htmlView.frame = CGRectMake((-CGFLOAT_WIDTH_UNKNOWN+self.bounds.size.width)/2, 0, CGFLOAT_WIDTH_UNKNOWN, CGFLOAT_HEIGHT_UNKNOWN);
             break;
         case NSTextAlignmentRight:
             textAlignment = kCTTextAlignmentRight;
-            self.htmlView.frame = CGRectMake(-CGFLOAT_WIDTH_UNKNOWN+self.bounds.size.width, 0, CGFLOAT_WIDTH_UNKNOWN, CGFLOAT_HEIGHT_UNKNOWN);
             break;
         case NSTextAlignmentJustified: textAlignment = kCTTextAlignmentJustified; break;
         case NSTextAlignmentNatural: textAlignment = kCTTextAlignmentNatural; break;
@@ -55,10 +54,10 @@
                                                                                  DTDefaultTextColor : self.textColor,
                                                                                  DTDefaultTextAlignment : @(textAlignment)}
                                                         documentAttributes:nil];
+    self.htmlView.frame = CGRectMake(0, 0, CGFLOAT_WIDTH_UNKNOWN, CGFLOAT_HEIGHT_UNKNOWN);
     [self.htmlView setAttributedString:attrStr];
-    
     _htmlContentSize = [self.htmlView intrinsicContentSize];
-    _htmlContentSize.width += self.htmlView.frame.origin.x;
+    _htmlLastSize = CGSizeZero;
     self.htmlView.frame = self.bounds;
     
     [self invalidateIntrinsicContentSize];
@@ -78,21 +77,104 @@
     self.htmlView = nil;
 }
 
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    if (self.zeroIfEmptyTextConstraints) {
+        BOOL zero = self.text.length == 0 && self.htmlText.length == 0;
+        for (NSLayoutConstraint *constraint in self.zeroIfEmptyTextConstraints) {
+            if (zero) {
+                constraint.constant = 0;
+            } else {
+                NSUInteger index = [self.zeroIfEmptyTextConstraints indexOfObject:constraint];
+                constraint.constant = [self.defaultConstraintValue[index] floatValue];
+            }
+        }
+    }
+}
+
 - (CGSize)intrinsicContentSize
 {
     if (self.htmlView) {
+        CGFloat currentWidth = 0;
         for (NSLayoutConstraint *c in self.constraints) {
             if (c.firstAttribute == NSLayoutAttributeWidth) {
-                return [self.htmlView suggestedFrameSizeToFitEntireStringConstraintedToWidth:self.frame.size.width];
+                currentWidth = self.frame.size.width;
+                break;
             }
         }
-        if (self.preferredMaxLayoutWidth) {
-            return [self.htmlView suggestedFrameSizeToFitEntireStringConstraintedToWidth:self.preferredMaxLayoutWidth];
+        if (currentWidth == 0) {
+            if (self.preferredMaxLayoutWidth) {
+                currentWidth = self.preferredMaxLayoutWidth;
+            } else {
+                currentWidth = self.htmlContentSize.width;
+            }
         }
-        return self.htmlContentSize;
+        if (self.htmlLastSize.width != currentWidth) {
+            if (self.htmlContentSize.width != currentWidth) {
+                self.htmlLastSize = [self.htmlView suggestedFrameSizeToFitEntireStringConstraintedToWidth:currentWidth];
+            } else {
+                self.htmlLastSize = self.htmlContentSize;
+            }
+            _htmlLastSize.width = currentWidth;
+        }
+        return self.htmlLastSize;
     } else {
         return [super intrinsicContentSize];
     }
+}
+
+- (void)setZeroIfEmptyTextConstraints:(NSArray *)zeroIfEmptyTextConstraints
+{
+    _zeroIfEmptyTextConstraints = zeroIfEmptyTextConstraints;
+    self.defaultConstraintValue = [zeroIfEmptyTextConstraints valueForKey:@"constant"];
+}
+
+@end
+
+@interface DTCoreTextLayoutFrame(FS_m)
+
+- (void)_buildLines;
+
+@end
+
+@implementation DTCoreTextLayoutFrame(FS)
+
+- (CGRect)frame
+{
+    if (!_lines)
+    {
+        [self _buildLines];
+    }
+    
+    if (![self.lines count])
+    {
+        return CGRectZero;
+    }
+    
+    if (_frame.size.height == CGFLOAT_HEIGHT_UNKNOWN)
+    {
+        // actual frame is spanned between first and last lines
+        DTCoreTextLayoutLine *lastLine = [_lines lastObject];
+        
+        _frame.size.height = ceil((CGRectGetMaxY(lastLine.frame) - _frame.origin.y + 1.5f));
+    }
+    
+    if (_frame.size.width == CGFLOAT_WIDTH_UNKNOWN)
+    {
+        // actual frame width is maximum value of lines
+        CGFloat maxWidth = 0;
+        
+        for (DTCoreTextLayoutLine *oneLine in _lines)
+        {
+            CGFloat lineWidthFromFrameOrigin = CGRectGetWidth(oneLine.frame);
+            maxWidth = MAX(maxWidth, lineWidthFromFrameOrigin);
+        }
+        
+        _frame.size.width = ceil(maxWidth);
+    }
+    
+    return _frame;
 }
 
 @end

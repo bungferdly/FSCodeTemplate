@@ -11,7 +11,7 @@
 
 @interface FSObserver : NSObject
 
-@property (strong, nonatomic) void (^changeBlock)(id, id);
+@property (strong, nonatomic) void (^changeBlock)(id, id, id);
 @property (strong, nonatomic) id observed;
 @property (strong, nonatomic) NSString *keyPath;
 @property (weak, nonatomic) id observer;
@@ -21,7 +21,7 @@
 
 @implementation FSObserver
 
-- (void)addObserver:(id)observer forObject:(id)observed andKeyPath:(NSString *)keyPath changeBlock:(void (^)(id, id))changeBlock
+- (void)addObserver:(id)observer forObject:(id)observed andKeyPath:(NSString *)keyPath changeBlock:(void (^)(id, id, id))changeBlock
 {
     self.observed = observed;
     self.keyPath = keyPath;
@@ -29,12 +29,12 @@
     self.observer = observer;
     self.keyAssociated = [[NSProcessInfo processInfo] globallyUniqueString];
     objc_setAssociatedObject(observer, [self.keyAssociated cStringUsingEncoding:NSUTF8StringEncoding], self, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    [observed addObserver:self forKeyPath:keyPath options:NSKeyValueObservingOptionOld context:nil];
+    [observed addObserver:self forKeyPath:keyPath options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld context:nil];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context
 {
-    self.changeBlock(self.observer, change[@"old"]);
+    self.changeBlock(self.observer, change[@"new"], change[@"old"]);
 }
 
 - (void)stop
@@ -69,7 +69,7 @@
     self.observers = [NSHashTable weakObjectsHashTable];
 }
 
-- (void)addObserver:(id)observer forObject:(id)observed andKeyPath:(NSString *)keyPath changeBlock:(void (^)(id, id))changeBlock
+- (void)addObserver:(id)observer forObject:(id)observed andKeyPath:(NSString *)keyPath changeBlock:(void (^)(id, id, id))changeBlock
 {
     FSObserver *obs = [FSObserver new];
     [obs addObserver:observer forObject:observed andKeyPath:keyPath changeBlock:changeBlock];

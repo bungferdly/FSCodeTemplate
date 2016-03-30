@@ -59,7 +59,9 @@
 - (void)setControllers:(NSArray *)controllers
 {
     _controllers = controllers;
-    
+    for (id con in controllers) {
+        [self addChildViewController:con];
+    }
     if ([self.pageControl isKindOfClass:[UIPageControl class]]) {
         ((UIPageControl *)self.pageControl).numberOfPages = controllers.count;
     }
@@ -161,6 +163,11 @@
 
 - (void)pageViewController:(UIPageViewController *)pageViewController didFinishAnimating:(BOOL)finished previousViewControllers:(NSArray<UIViewController *> *)previousViewControllers transitionCompleted:(BOOL)completed
 {
+    for (UIViewController *vc in self.controllers) {
+        if (!vc.parentViewController) {
+            [self addChildViewController:vc];
+        }
+    }
     if (finished && completed) {
         [self _setSelectedIndex:[self.controllers indexOfObject:self.pageViewController.viewControllers.firstObject]];
         if ([self.contentDelegate respondsToSelector:@selector(pageControllerDidScroll:)]) {

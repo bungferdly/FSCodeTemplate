@@ -7,6 +7,7 @@
 //
 
 #import "UIViewController+FS.h"
+#import "FSPageController.h"
 
 @implementation UIViewController (FS)
 
@@ -47,16 +48,43 @@
     while (true) {
         if ([rootNC presentedViewController]) {
             rootNC = [rootNC presentedViewController];
-        }else if ([rootNC isKindOfClass:[UITabBarController class]]) {
+        } else if ([rootNC isKindOfClass:[UITabBarController class]]) {
             rootNC = [rootNC selectedViewController];
-        }else if ([rootNC isKindOfClass:[UINavigationController class]]) {
+        } else if ([rootNC isKindOfClass:[UINavigationController class]]) {
             rootNC = [rootNC topViewController];
+        } else if ([rootNC isKindOfClass:[FSPageController class]] && [rootNC controllers].count > [rootNC selectedIndex]) {
+            rootNC = [rootNC controllers][[rootNC selectedIndex]];
         } else {
             break;
         }
     }
-    
     return rootNC;
+}
+
+- (instancetype)fs_childControllerWithClass:(Class)cls
+{
+    if ([self isKindOfClass:cls]) {
+        return self;
+    }
+    if (self.presentedViewController && self.presentedViewController != self.parentViewController.presentedViewController) {
+        id vc = [self.presentedViewController fs_childControllerWithClass:cls];
+        if (vc) {
+            return vc;
+        }
+    }
+    for (UIViewController *childVC in self.childViewControllers) {
+        id vc = [childVC fs_childControllerWithClass:cls];
+        if (vc) {
+            return vc;
+        }
+    }
+    return nil;
+}
+
++ (instancetype)fs_sharedController
+{
+    id rootNC = [UIApplication sharedApplication].delegate.window.rootViewController;
+    return [rootNC fs_childControllerWithClass:[self class]];
 }
 
 - (IBAction)fs_popViewControllerAnimated:(id)sender

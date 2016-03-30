@@ -12,6 +12,7 @@
 
 + (instancetype)fs_topViewController;
 + (instancetype)fs_newController;
++ (instancetype)fs_sharedController;
 - (void)fs_setAsRootViewController;
 
 - (IBAction)fs_popViewControllerAnimated:(id)sender;

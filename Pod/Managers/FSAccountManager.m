@@ -13,7 +13,7 @@
 
 @implementation FSAccountManager
 
-- (void)didLoad
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     self.loggedIn = [FSKeychainLoad(FSRequestManagerLoggedIn) boolValue];
 }

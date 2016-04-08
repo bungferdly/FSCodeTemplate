@@ -24,15 +24,20 @@ NSString * const FSKeychainInstalled = @"FSKeychainInstalled";
 
 - (void)didLoad
 {
-    self.keychain = [FXKeychain defaultKeychain];
     self.keys = [[NSMutableArray alloc] initWithArray:[self objectForKey:FSKeychainKeys]];
-    
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:FSKeychainInstalled]) {
-        [self removeAllObjects];
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:FSKeychainInstalled];
-    }
-    
     [[FSAccountManager sharedManager] addDelegate:self];
+}
+
+- (FXKeychain *)keychain
+{
+    if (!_keychain) {
+        _keychain = [FXKeychain defaultKeychain];
+        if (![[NSUserDefaults standardUserDefaults] boolForKey:FSKeychainInstalled]) {
+            [self removeAllObjects];
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:FSKeychainInstalled];
+        }
+    }
+    return _keychain;
 }
 
 - (id)objectForKey:(NSString *)aKey
@@ -80,6 +85,53 @@ NSString * const FSKeychainInstalled = @"FSKeychainInstalled";
 - (void)accountManagerDidLoggedOut:(id)userInfo
 {
     [self removeAllObjects];
+}
+
+@end
+
+@interface FSSharedKeychainManager() {
+    FXKeychain *_sharedKeychain;
+}
+
+@end
+
+@implementation FSSharedKeychainManager
+
+- (FXKeychain *)keychain
+{
+    if (!_sharedKeychain) {
+        NSDictionary *query = [NSDictionary dictionaryWithObjectsAndKeys:
+                               (__bridge NSString *)kSecClassGenericPassword, (__bridge NSString *)kSecClass,
+                               @"bundleSeedID", kSecAttrAccount,
+                               @"", kSecAttrService,
+                               (id)kCFBooleanTrue, kSecReturnAttributes,
+                               nil];
+        CFDictionaryRef result = nil;
+        OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef)query, (CFTypeRef *)&result);
+        if (status == errSecItemNotFound)
+            status = SecItemAdd((__bridge CFDictionaryRef)query, (CFTypeRef *)&result);
+        if (status == errSecSuccess) {
+            NSString *accessGroup = [(__bridge NSDictionary *)result objectForKey:(__bridge NSString *)kSecAttrAccessGroup];
+            NSMutableArray *components = [accessGroup componentsSeparatedByString:@"."];
+            if (components.count > 1) {
+                [components removeObjectAtIndex:0];
+                NSString *accessGroupBundleID = [components componentsJoinedByString:@"."];
+                NSString *bundleID = [[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString *)kCFBundleIdentifierKey];
+                if (![accessGroupBundleID isEqualToString:bundleID]) {
+                    _sharedKeychain = [[FXKeychain alloc] initWithService:accessGroup accessGroup:accessGroup];
+                }
+            }
+        }
+        if (!_sharedKeychain) {
+            _sharedKeychain = super.keychain;
+        }
+    }
+    return _sharedKeychain;
+}
+
+- (void)accountManagerDidLoggedOut:(id)userInfo
+{
+    
 }
 
 @end

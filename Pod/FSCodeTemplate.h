@@ -32,6 +32,7 @@
 #import "FSKeychainManager.h"
 #import "FSObserverManager.h"
 
+#import "FSViewController.h"
 #import "FSPageController.h"
 #import "FSAlertController.h"
 

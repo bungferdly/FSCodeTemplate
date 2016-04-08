@@ -7,11 +7,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "FSViewController.h"
 
 @protocol FSPageControllerDelegate;
 @class FSSegmentedControl;
 
-@interface FSPageController : UIViewController
+@interface FSPageController : FSViewController
 
 @property (weak, nonatomic)     id<FSPageControllerDelegate> contentDelegate;
 @property (strong, nonatomic)   NSArray *controllers;

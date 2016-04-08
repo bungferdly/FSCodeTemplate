@@ -19,3 +19,11 @@
 - (void)removeAllObjects;
 
 @end
+
+#define FSSharedKeychainSave(obj, key) [[FSSharedKeychainManager sharedManager] setObject:obj forKey:key]
+#define FSSharedKeychainLoad(key) [[FSSharedKeychainManager sharedManager] objectForKey:key]
+#define FSSharedKeychainRemove(key) FSSharedKeychainSave(nil, key)
+
+@interface FSSharedKeychainManager : FSKeychainManager
+
+@end

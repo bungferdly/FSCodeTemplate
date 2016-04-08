@@ -11,5 +11,6 @@
 @interface FSTableView : UITableView
 
 @property (strong, nonatomic) IBOutlet UIView *staticTableHeaderView;
+@property (assign, nonatomic) IBInspectable BOOL dynamicHeight;
 
 @end

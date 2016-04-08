@@ -8,8 +8,18 @@
 
 #import "FSViewController.h"
 #import "FSRequestManager.h"
+#import "FSTableView.h"
+#import "FSCodeTemplate.h"
 
 UIBarButtonItem *__fsBackButtonItem = nil;
+NSString *__fsDefaultEmptyNIBName = nil;
+NSString *__fsDefaultErrorNIBName = nil;
+
+typedef enum : NSUInteger {
+    FSViewContentModeNormal,
+    FSViewContentModeEmpty,
+    FSViewContentModeError,
+} FSViewContentMode;
 
 @interface FSViewController ()
 
@@ -17,6 +27,7 @@ UIBarButtonItem *__fsBackButtonItem = nil;
 @property (strong, nonatomic) FSResponse *response;
 @property (assign, nonatomic) BOOL requesting;
 @property (strong, nonatomic) NSTimer *requestTimer;
+@property (assign, nonatomic) FSViewContentMode *contentMode;
 
 @end
 
@@ -25,6 +36,15 @@ UIBarButtonItem *__fsBackButtonItem = nil;
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    if ([self.contentView isKindOfClass:[FSTableView class]]) {
+        FSTableView *tableView = (FSTableView *)self.contentView;
+        if (tableView.dynamicHeight) {
+            tableView.estimatedRowHeight = tableView.rowHeight;
+            tableView.rowHeight = UITableViewAutomaticDimension;
+        }
+    }
+    
     [self performSelector:@selector(reloadData) withObject:nil afterDelay:0];
 }
 
@@ -51,7 +71,21 @@ UIBarButtonItem *__fsBackButtonItem = nil;
     }
 }
 
-#pragma mark - HANDLE TABLE VIEW
+#pragma mark - HANDLE TABLEVIEW
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (FSKindOf(tableView, FSTableView).dynamicHeight) {
+        if (FSOSVersion >= 8) {
+            return UITableViewAutomaticDimension;
+        } else {
+            UITableViewCell *cell = [self tableView:tableView cellForRowAtIndexPath:indexPath];
+            return [cell.contentView systemLayoutSizeFittingSize:UILayoutFittingCompressedSize].height;
+        }
+    } else {
+        return tableView.rowHeight;
+    }
+}
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
@@ -65,25 +99,17 @@ UIBarButtonItem *__fsBackButtonItem = nil;
 
 #pragma mark - MAKE REQUEST
 
-- (FSRequest *)request
-{
-    if (!_request) {
-        _request = [[FSRequest alloc] init];
-        _request.errorHidden = YES;
-    }
-    return _request;
-}
-
 - (void)reloadData
 {
-    if (self.request.path) {
-        [self setInfo:nil error:NO];
+    if (self.request) {
+        self.request.errorHidden = YES;
+        self.contentMode = FSViewContentModeNormal;
         self.requesting = YES;
         
         [[FSRequestManager sharedManager] startRequest:self.request withCompletion:^(FSResponse *response) {
             
             BOOL hideChildView = !self.viewNoHidden && response.error != nil && !self.response.object;
-            [self setInfo:hideChildView ? response.error.localizedDescription : nil error:hideChildView];
+            [self setContentMode:hideChildView ? FSViewContentModeError : FSViewContentModeNormal withInfo:response.error.localizedDescription];
             self.requesting = NO;
             
             if (response && !response.error) {
@@ -115,14 +141,12 @@ UIBarButtonItem *__fsBackButtonItem = nil;
         tableView.dataSource = self;
         [tableView reloadData];
         
-        BOOL hasRows = NO;
+        FSViewContentMode contentMode = FSViewContentModeEmpty;
         int sections = [tableView numberOfSections];
         for (int i = 0; i < sections; i++) {
-            hasRows = [tableView numberOfRowsInSection:i] > 0;
+            contentMode |= [tableView numberOfRowsInSection:i] > 0;
         }
-        if (!hasRows) {
-            [self setInfo:self.emptyContentView.emptyText error:NO];
-        }
+        self.contentMode = contentMode;
     }
 }
 
@@ -147,16 +171,52 @@ UIBarButtonItem *__fsBackButtonItem = nil;
     self.requestTimer = nil;
 }
 
-- (void)setInfo:(NSString *)string error:(BOOL)error
+- (void)setContentMode:(FSViewContentMode *)mode
 {
-    self.emptyContentView.hidden = !string.length;
-    self.emptyContentView.messageLabel.text = string;
-    if (self.emptyContentView.reloadButton) {
-        self.emptyContentView.reloadButton.hidden = !error;
-        self.contentView.hidden = error;
-    } else {
-        self.contentView.backgroundColor = [UIColor clearColor];
+    [self setContentMode:mode withInfo:nil];
+}
+
+- (void)setContentMode:(FSViewContentMode *)mode withInfo:(NSString *)info
+{
+    _contentMode = mode;
+    if (_errorView || mode == FSViewContentModeError) {
+        self.errorView.hidden = mode != FSViewContentModeError;
+        self.errorView.messageLabel.text = info;
+        if (self.errorView.reloadButton) {
+            self.contentView.hidden = mode != FSViewContentModeNormal;
+        } else {
+            self.contentView.backgroundColor = [UIColor clearColor];
+        }
     }
+    if (_emptyView || mode == FSViewContentModeEmpty) {
+        self.emptyView.hidden = mode != FSViewContentModeEmpty;
+    }
+}
+
+- (FSErrorView *)errorView
+{
+    if (!_errorView &&  __fsDefaultErrorNIBName) {
+        _errorView = [[[NSBundle mainBundle] loadNibNamed:__fsDefaultErrorNIBName owner:self options:nil] firstObject];
+    }
+    return _errorView;
+}
+
+- (UIView *)emptyView
+{
+    if (!_emptyView && __fsDefaultEmptyNIBName) {
+        _emptyView = [[[NSBundle mainBundle] loadNibNamed:__fsDefaultErrorNIBName owner:self options:nil] firstObject];
+    }
+    return _emptyView;
+}
+
++ (void)setDefaultEmptyNIBName:(NSString *)defaultEmptyNIBName
+{
+    __fsDefaultEmptyNIBName = defaultEmptyNIBName;
+}
+
++ (void)setDefaultErrorNIBName:(NSString *)defaultErrorNIBName
+{
+    __fsDefaultErrorNIBName = __fsDefaultErrorNIBName;
 }
 
 @end

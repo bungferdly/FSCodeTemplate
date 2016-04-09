@@ -15,6 +15,4 @@
 @property (strong, nonatomic) IBOutlet UIImageView *imageView;
 @property (weak  , nonatomic) IBOutlet id delegate;
 
-+ (CGFloat)heightForTableView:(UITableView *)tableView andContent:(id)content;
-
 @end

@@ -8,6 +8,8 @@
 
 #import "UIViewController+FS.h"
 #import "FSPageController.h"
+#import "FSRequestController.h"
+#import "FSNavigationController.h"
 
 @implementation UIViewController (FS)
 
@@ -31,7 +33,7 @@
 - (void)fs_setAsRootViewController
 {
     UIWindow *rootWindow = [[UIApplication sharedApplication].delegate window];
-    UINavigationController *rootNC = [[UINavigationController alloc] initWithRootViewController:self];
+    UINavigationController *rootNC = [[[UINavigationController fs_defaultNavigationControllerClass] alloc] initWithRootViewController:self];
     rootWindow.rootViewController = rootNC;
 }
 
@@ -47,6 +49,8 @@
             rootNC = [rootNC topViewController];
         } else if ([rootNC isKindOfClass:[FSPageController class]] && [rootNC controllers].count > [rootNC selectedIndex]) {
             rootNC = [rootNC controllers][[rootNC selectedIndex]];
+        } else if ([rootNC isKindOfClass:[FSRequestController class]]){
+            rootNC = [[rootNC childViewControllers] firstObject];
         } else {
             break;
         }

@@ -42,9 +42,4 @@
     }
 }
 
-- (void)setFs_content:(id)fs_content
-{
-    
-}
-
 @end

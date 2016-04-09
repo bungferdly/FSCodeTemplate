@@ -48,14 +48,4 @@
     }
 }
 
-+ (CGFloat)heightForTableView:(UITableView *)tableView andContent:(id)content
-{
-    return tableView.rowHeight;
-}
-
-- (void)setFs_content:(id)fs_content
-{
-    
-}
-
 @end

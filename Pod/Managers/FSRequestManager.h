@@ -35,6 +35,7 @@ typedef enum : NSUInteger {
 } FSRequestDelay;
 
 @protocol AFMultipartFormData;
+@class FSResponse;
 
 @interface FSRequest : NSObject
 
@@ -50,6 +51,8 @@ typedef enum : NSUInteger {
 @property (readonly, nonatomic) NSMutableDictionary *httpHeaderFields;
 @property (strong, nonatomic) void (^constructingBodyBlock)(id <AFMultipartFormData> formData);
 @property (assign, nonatomic) NSInteger retryCount;
+
+- (void)startWithCompletion:(void(^)(FSResponse *response))completion;
 
 @end
 

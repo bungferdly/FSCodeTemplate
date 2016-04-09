@@ -549,6 +549,11 @@
     return self;
 }
 
+- (void)startWithCompletion:(void (^)(FSResponse *))completion
+{
+    [[FSRequestManager sharedManager] startRequest:self withCompletion:completion];
+}
+
 @end
 
 @implementation FSResponse

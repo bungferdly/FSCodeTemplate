@@ -15,7 +15,9 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    self.loggedIn = [FSKeychainLoad(FSRequestManagerLoggedIn) boolValue];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.loggedIn = [FSKeychainLoad(FSRequestManagerLoggedIn) boolValue];
+    });
 }
 
 - (void)setLoggedIn:(BOOL)loggedIn

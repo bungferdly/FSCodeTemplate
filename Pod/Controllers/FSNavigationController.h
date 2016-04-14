@@ -16,6 +16,10 @@
 
 @end
 
+@protocol FSToolbarShow <NSObject>
+
+@end
+
 @interface UINavigationController (FS)
 
 + (void)fs_setAsDefaultNavigationControllerClass;

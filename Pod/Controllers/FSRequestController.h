@@ -17,7 +17,7 @@
 @property (strong, nonatomic) IBOutlet FSRequestView *emptyView;
 @property (strong, nonatomic) IBOutlet UIActivityIndicatorView *pagingAI;
 
-@property (readonly, nonatomic) FSRequest *request;
+@property (strong, nonatomic) FSRequest *request;
 @property (readonly, nonatomic) FSResponse *response;
 @property (readonly, nonatomic) NSUInteger currentPage;
 @property (assign, nonatomic) BOOL viewNoHidden;

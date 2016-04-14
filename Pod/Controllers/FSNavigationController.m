@@ -19,6 +19,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    self.view.backgroundColor = [UIColor whiteColor];
     self.delegate = self;
     self.backButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];
 }
@@ -45,6 +46,7 @@
     if (!viewController.navigationItem.backBarButtonItem) {
         viewController.navigationItem.backBarButtonItem = self.backButtonItem;
     }
+    [self setToolbarHidden:![viewController conformsToProtocol:@protocol(FSToolbarShow)] animated:animated];
     [self setNavigationBarHidden:[viewController conformsToProtocol:@protocol(FSNavigationBarHidden)] animated:animated];
 }
 

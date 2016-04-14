@@ -21,5 +21,6 @@
 
 @property (strong, nonatomic) IBInspectable NSString *dateFormat;
 @property (strong, nonatomic) IBOutlet UIDatePicker *datePicker;
+@property (strong, nonatomic) NSDate *date;
 
 @end

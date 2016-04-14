@@ -24,7 +24,6 @@ typedef enum : int {
 @property (strong, nonatomic) NSTimer *requestTimer;
 @property (assign, nonatomic) BOOL hitMaxPage;
 @property (assign, nonatomic) NSUInteger currentPage;
-@property (strong, nonatomic) FSRequest *request;
 @property (strong, nonatomic) FSResponse *response;
 @property (assign, nonatomic) FSRequestContentMode contentMode;
 
@@ -40,7 +39,13 @@ typedef enum : int {
 {
     self = [super initWithCoder:aDecoder];
     self.request = [[FSRequest alloc] init];
-    self.request.errorHidden = YES;
+    return self;
+}
+
+- (instancetype)init
+{
+    self = [super init];
+    self.request = [[FSRequest alloc] init];
     return self;
 }
 
@@ -77,7 +82,7 @@ typedef enum : int {
     self.childController.view.frame = self.view.bounds;
     self.childController.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     
-    if (![self.childController respondsToSelector:@selector(requestControllerWillStartRequest:)]) {
+    if (![self.childController respondsToSelector:@selector(requestControllerWillStartRequest:)] && !self.request.path) {
         return;
     }
     
@@ -98,7 +103,7 @@ typedef enum : int {
     if ([self.childController respondsToSelector:@selector(setRefreshControl:)]) {
         [(id)self.childController setRefreshControl:self.refreshControl];
     } else {
-        [self.childView addSubview:self.refreshControl];
+        [self.childView insertSubview:self.refreshControl atIndex:0];
     }
     
     self.view.backgroundColor = self.childController.view.backgroundColor;
@@ -117,6 +122,16 @@ typedef enum : int {
 - (UINavigationItem *)navigationItem
 {
     return [self childController].navigationItem ?: [super navigationItem];
+}
+
+- (NSArray<UIBarButtonItem *> *)toolbarItems
+{
+    return [self childController].toolbarItems ?: [super toolbarItems];
+}
+
+- (BOOL)conformsToProtocol:(Protocol *)aProtocol
+{
+    return [self.childController conformsToProtocol:aProtocol];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context
@@ -236,7 +251,7 @@ typedef enum : int {
 
 - (FSRequestView *)errorView
 {
-    if (!_errorView) {
+    if (!_errorView && __fsDefaultErrorNIBName) {
         _errorView = [[[NSBundle mainBundle] loadNibNamed:__fsDefaultErrorNIBName owner:self options:nil] firstObject];
         _errorView.frame = self.view.bounds;
         _errorView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -247,7 +262,7 @@ typedef enum : int {
 
 - (FSRequestView *)emptyView
 {
-    if (!_emptyView) {
+    if (!_emptyView && __fsDefaultEmptyNIBName) {
         _emptyView = [[[NSBundle mainBundle] loadNibNamed:__fsDefaultEmptyNIBName owner:self options:nil] firstObject];
         _emptyView.frame = self.view.bounds;
         _emptyView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -272,7 +287,7 @@ typedef enum : int {
 - (FSRequestController *)requestController
 {
     id parentVC = self.parentViewController;
-    while (parentVC && FSKindOf(parentVC, FSRequestController)) {
+    while (parentVC && !FSKindOf(parentVC, FSRequestController)) {
         parentVC = [parentVC parentViewController];
     }
     return parentVC;

@@ -151,6 +151,12 @@
             response.error = nil;
         }
         if (!response.error && data) {
+            for (NSString *key in self.resultCompexKeys) {
+                id newData = [(NSDictionary *)data fs_valueForJSONComplexKey:key];
+                if (newData) {
+                    data = newData;
+                }
+            }
             response.object = data;
             if (object.method == FSRequestMethodGET) {
                 if (object.cachePolicy != FSRequestCachePolicyNetworkOnly) {
@@ -333,8 +339,26 @@
         if (req.retryCount >= 0 && !req.errorHidden) {
             [SVProgressHUD dismiss];
             
-            NSData *errDetails = self.showDebugDetails ? req.response.error.userInfo[@"com.alamofire.serialization.response.error.data"] : nil;
-            [FSAlertController showWithTitle:NSLocalizedString(@"Error",nil) message:[req.response.error localizedDescription]
+            NSError *error = req.response.error;
+            NSData *errDetails = error.userInfo[@"com.alamofire.serialization.response.error.data"];
+            if (errDetails) {
+                NSDictionary *errDetailsDict = [NSJSONSerialization JSONObjectWithData:errDetails options:0 error:nil];
+                id newError = nil;
+                for (NSString *key in self.errorMessageComplexKeys) {
+                    newError = [errDetailsDict fs_valueForJSONComplexKey:key];
+                    if (newError) {
+                        if ([newError isKindOfClass:[NSArray class]]) {
+                            newError = [(NSArray *)newError componentsJoinedByString:@"\n"];
+                        }
+                        error = [NSError errorWithDomain:NSCocoaErrorDomain
+                                                    code:error.code
+                                                userInfo:@{NSLocalizedDescriptionKey : newError}];
+                        break;
+                    }
+                }
+            }
+            errDetails = self.showDebugDetails ? errDetails : nil;
+            [FSAlertController showWithTitle:NSLocalizedString(@"Error",nil) message:[error localizedDescription]
                            cancelButtonTitle:NSLocalizedString(@"Dismiss", nil) destructiveButtonTitle:nil
                            otherButtonTitles:errDetails ? @[@"Debug Details"] : nil container:nil
                                     tapBlock:^(FSAlertController * _Nonnull controller, NSInteger buttonIndex) {

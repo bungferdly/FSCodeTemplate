@@ -101,6 +101,8 @@
         [self setSelectedIndex:(NSUInteger)((UIPageControl *)self.pageControl).currentPage animated:YES];
     } else if ([self.pageControl isKindOfClass:[FSSegmentedControl class]]) {
         [self setSelectedIndex:(NSUInteger)((FSSegmentedControl *)self.pageControl).value animated:YES];
+    } else if ([self.pageControl isKindOfClass:[UISegmentedControl class]]) {
+        [self setSelectedIndex:((UISegmentedControl *)self.pageControl).selectedSegmentIndex animated:YES];
     }
 }
 
@@ -134,6 +136,8 @@
         ((UIPageControl *)self.pageControl).currentPage = selectedIndex;
     } else if ([self.pageControl isKindOfClass:[FSSegmentedControl class]]) {
         ((FSSegmentedControl *)self.pageControl).value = selectedIndex;
+    } else if ([self.pageControl isKindOfClass:[UISegmentedControl class]]) {
+        ((UISegmentedControl *)self.pageControl).selectedSegmentIndex = selectedIndex;
     }
 }
 

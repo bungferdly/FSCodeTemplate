@@ -86,7 +86,7 @@
         [self.currentResponder setInputAccessoryView:self.toolbar];
     }
     
-    if ([self.nextResponder isKindOfClass:[UIControl class]]) {
+    if ([self.currentResponder isKindOfClass:[UIControl class]]) {
         if (self.nextResponder) {
             [self.currentResponder addTarget:self action:@selector(gotoNextResponder) forControlEvents:UIControlEventEditingDidEndOnExit];
         } else {

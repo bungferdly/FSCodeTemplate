@@ -86,10 +86,12 @@
         [self.currentResponder setInputAccessoryView:self.toolbar];
     }
     
-    if (self.nextResponder) {
-        [self.currentResponder addTarget:self action:@selector(gotoNextResponder) forControlEvents:UIControlEventEditingDidEndOnExit];
-    } else {
-        [self.currentResponder addTarget:self action:@selector(endEditing) forControlEvents:UIControlEventEditingDidEndOnExit];
+    if ([self.nextResponder isKindOfClass:[UIControl class]]) {
+        if (self.nextResponder) {
+            [self.currentResponder addTarget:self action:@selector(gotoNextResponder) forControlEvents:UIControlEventEditingDidEndOnExit];
+        } else {
+            [self.currentResponder addTarget:self action:@selector(endEditing) forControlEvents:UIControlEventEditingDidEndOnExit];
+        }
     }
 }
 

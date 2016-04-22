@@ -17,7 +17,7 @@
 
 @implementation FSTableViewCell
 
-@synthesize highlighted = _highlighted, detailTextLabel = _fsDetailTextLabel, textLabel = _fsTextLabel, imageView = _fsImageView;
+@synthesize highlighted = _highlighted, detailTextLabel = _fsDetailTextLabel, textLabel = _fsTextLabel, imageView = _fsImageView, accessoryView = _fsAccessoryView;
 
 - (void)awakeFromNib
 {

@@ -102,7 +102,7 @@
 {
     NSObject<FSAbstractModelProtocol> *cache = [self cacheForObject:object];
     if (cache != object) {
-        [cache mergeWithModel:cache];
+        [cache mergeWithModel:object];
     }
     return cache;
 }

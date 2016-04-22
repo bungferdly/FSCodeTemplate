@@ -12,7 +12,7 @@
 @interface FSDynamicTableController ()
 
 @property (assign, nonatomic) CGSize contentSize;
-
+@property (assign, nonatomic) CGFloat width;
 @end
 
 @implementation FSDynamicTableController
@@ -52,10 +52,61 @@
         (self.contentSize.width != self.tableView.contentSize.width || self.contentSize.height != self.tableView.contentSize.height)) {
         self.contentSize = self.tableView.contentSize;
         
-        UIView *footerView = self.tableView.tableFooterView;
-        self.tableView.tableFooterView = nil;
-        self.tableView.tableFooterView = footerView;
+        [self.tableView layoutHeaderFooterIfNeeded];
     }
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    if (self.width != self.view.frame.size.width) {
+        self.width = self.view.frame.size.width;
+        [self.tableView layoutHeaderFooterIfNeeded];
+    }
+}
+
+
+@end
+
+@implementation UITableView (FS)
+
+- (void)layoutHeaderFooterIfNeeded
+{
+    UIView *headerView = self.tableHeaderView;
+    if (headerView) {
+        [self sizeViewToFit:headerView];
+        self.tableHeaderView = headerView;
+    }
+    
+    UIView *footerView = self.tableFooterView;
+    if (footerView) {
+        [self sizeViewToFit:footerView];
+        self.tableFooterView = footerView;
+    }
+}
+
+- (void)sizeViewToFit:(UIView *)view
+{
+    NSLayoutConstraint *c = [NSLayoutConstraint constraintWithItem:view attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:nil multiplier:1 constant:self.frame.size.width];
+    [view addConstraint:c];
+    
+    CGSize size = [view systemLayoutSizeFittingSize:UILayoutFittingCompressedSize];
+    if (size.height != 0) {
+        CGRect frame = [view frame];
+        frame.size.height = size.height;
+        view.frame = frame;
+    }
+    
+    [view removeConstraint:c];
+}
+
+- (UITableViewCell *)dequeueReusableCellWithIdentifier:(NSString *)identifier nilIdentifier:(NSString *)nilIdentifier
+{
+    id cell = [self dequeueReusableCellWithIdentifier:identifier];
+    if (!cell && nilIdentifier) {
+        cell = [self dequeueReusableCellWithIdentifier:nilIdentifier];
+    }
+    return cell;
 }
 
 @end

@@ -172,12 +172,7 @@ typedef enum : int {
     
     self.contentMode = FSRequestContentModeNormal;
     self.requesting = YES;
-    
     [self.request startWithCompletion:^(FSResponse *response) {
-        
-        BOOL hideChildView = !self.viewNoHidden && response.error != nil && !self.response.object && page == 0;
-        FSRequestContentMode mode = hideChildView ? FSRequestContentModeError : FSRequestContentModeNormal;
-        [self setContentMode:mode withInfo:response.error.localizedDescription];
         self.requesting = NO;
         
         if (response && !response.error) {
@@ -200,6 +195,27 @@ typedef enum : int {
             }
         } else {
             self.currentPage = currentPage;
+        }
+        
+        if (self.viewNoHidden || page > 0) {
+            self.contentMode = FSRequestContentModeNormal;
+        } else if (response.error) {
+            [self setContentMode:FSRequestContentModeError withInfo:response.error.localizedDescription];
+        } else {
+            if ([self.childView isKindOfClass:[UITableView class]]) {
+                UITableView *tableView = (UITableView *)self.childView;
+                int sections = [tableView numberOfSections];
+                BOOL hasRows = NO;
+                for (int i = 0; i < sections; i++) {
+                    hasRows |= [tableView numberOfRowsInSection:i] > 0;
+                    if (hasRows) {
+                        break;
+                    }
+                }
+                if (!hasRows) {
+                    self.contentMode = FSRequestContentModeEmpty;
+                }
+            }
         }
     }];
 }
@@ -255,6 +271,7 @@ typedef enum : int {
         _errorView = [[[NSBundle mainBundle] loadNibNamed:__fsDefaultErrorNIBName owner:self options:nil] firstObject];
         _errorView.frame = self.view.bounds;
         _errorView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        [_errorView.reloadButton addTarget:self action:@selector(requestData) forControlEvents:UIControlEventTouchUpInside];
         [self.view insertSubview:_errorView atIndex:0];
     }
     return _errorView;
@@ -266,6 +283,8 @@ typedef enum : int {
         _emptyView = [[[NSBundle mainBundle] loadNibNamed:__fsDefaultEmptyNIBName owner:self options:nil] firstObject];
         _emptyView.frame = self.view.bounds;
         _emptyView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        [_emptyView.reloadButton addTarget:self action:@selector(requestData) forControlEvents:UIControlEventTouchUpInside];
+        [self.view insertSubview:_emptyView atIndex:0];
     }
     return _emptyView;
 }
@@ -277,7 +296,7 @@ typedef enum : int {
 
 + (void)setDefaultErrorNIBName:(NSString *)defaultErrorNIBName
 {
-    __fsDefaultErrorNIBName = __fsDefaultErrorNIBName;
+    __fsDefaultErrorNIBName = defaultErrorNIBName;
 }
 
 @end
@@ -292,5 +311,9 @@ typedef enum : int {
     }
     return parentVC;
 }
+
+@end
+
+@implementation FSRequestView
 
 @end

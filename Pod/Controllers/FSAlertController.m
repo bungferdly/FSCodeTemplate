@@ -12,6 +12,8 @@
 #import <UIAlertView+Blocks/UIAlertView+Blocks.h>
 #import <UIActionSheet+Blocks/UIActionSheet+Blocks.h>
 
+Class __fsDefaultAlertControllerClass = nil;
+
 @interface FSAlertController ()
 
 @property(assign, nonatomic) NSInteger cancelButtonIndex;
@@ -21,6 +23,11 @@
 @end
 
 @implementation FSAlertController
+
++ (void)setAsDefaultAlertController
+{
+    __fsDefaultAlertControllerClass = [self class];
+}
 
 + (instancetype)showWithMessage:(NSString *)message
 {
@@ -37,6 +44,12 @@
        destructiveButtonTitle:(NSString *)destructiveButtonTitle otherButtonTitles:(NSArray *)otherButtonTitles
                     container:(id)container tapBlock:(FSAlertControllerCompletionBlock)tapBlock
 {
+    if (__fsDefaultAlertControllerClass && __fsDefaultAlertControllerClass != self) {
+        return [__fsDefaultAlertControllerClass showWithTitle:title message:message cancelButtonTitle:cancelButtonTitle
+                                       destructiveButtonTitle:destructiveButtonTitle otherButtonTitles:otherButtonTitles
+                                                    container:container tapBlock:tapBlock];
+    }
+    
     FSAlertController *alertController = [[FSAlertController alloc] init];
     
     dispatch_async(dispatch_get_main_queue(), ^{

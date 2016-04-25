@@ -37,5 +37,6 @@
 #import "FSTableViewCell.h"
 #import "FSCollectionViewCell.h"
 #import "FSTextField.h"
+#import "FSLayoutConstraint.h"
 
 #endif

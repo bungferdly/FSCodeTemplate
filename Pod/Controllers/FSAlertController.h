@@ -12,13 +12,14 @@
 
 typedef void (^FSAlertControllerCompletionBlock) (FSAlertController *__nonnull controller, NSInteger buttonIndex);
 
-@interface FSAlertController : NSObject
+@interface FSAlertController : UIViewController
 
 + (nonnull instancetype)showWithMessage:(nullable NSString *)message;
 + (nonnull instancetype)showWithTitle:(nullable NSString *)title message:(nullable NSString *)message;
 + (nonnull instancetype)showWithTitle:(nullable NSString *)title message:(nullable NSString *)message
                     cancelButtonTitle:(nullable NSString *)cancelButtonTitle destructiveButtonTitle:(nullable NSString *)destructiveButtonTitle
                     otherButtonTitles:(nullable NSArray *)otherButtonTitles container:(nullable id)container tapBlock:(nullable FSAlertControllerCompletionBlock)tapBlock;
++ (void)setAsDefaultAlertController;
 
 @property(nonatomic, readonly) NSInteger cancelButtonIndex;
 @property(nonatomic, readonly) NSInteger destructiveButtonIndex;

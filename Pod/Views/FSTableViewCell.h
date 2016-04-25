@@ -14,5 +14,14 @@
 @property (strong, nonatomic) IBOutlet UILabel *detailTextLabel;
 @property (strong, nonatomic) IBOutlet UIImageView *imageView;
 @property (weak  , nonatomic) IBOutlet id delegate;
+@property (strong, nonatomic) id data;
+
+- (IBAction)callDelegate:(id)sender;
+
+@end
+
+@protocol FSTableViewCellDelegate <NSObject>
+
+- (void)tableViewCell:(FSTableViewCell *)cell didSelectView:(UIView *)view;
 
 @end

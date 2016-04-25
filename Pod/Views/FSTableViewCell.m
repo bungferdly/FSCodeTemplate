@@ -48,4 +48,11 @@
     }
 }
 
+- (void)callDelegate:(id)sender
+{
+    if ([self.delegate respondsToSelector:@selector(tableViewCell:didSelectView:)]) {
+        [self.delegate tableViewCell:self didSelectView:sender];
+    }
+}
+
 @end

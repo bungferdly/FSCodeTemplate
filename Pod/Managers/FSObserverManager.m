@@ -71,6 +71,9 @@
 
 - (void)addObserver:(id)observer forObject:(id)observed andKeyPath:(NSString *)keyPath changeBlock:(void (^)(id, id, id))changeBlock
 {
+    if (!observed) {
+        return;
+    }
     FSObserver *obs = [FSObserver new];
     [obs addObserver:observer forObject:observed andKeyPath:keyPath changeBlock:changeBlock];
     [self.observers addObject:obs];

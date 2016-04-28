@@ -33,8 +33,13 @@
 - (void)fs_setAsRootViewController
 {
     UIWindow *rootWindow = [[UIApplication sharedApplication].delegate window];
-    UINavigationController *rootNC = [[[UINavigationController fs_defaultNavigationControllerClass] alloc] initWithRootViewController:self];
-    rootWindow.rootViewController = rootNC;
+    if ([self isKindOfClass:[UITabBarController class]] || [self isKindOfClass:[UINavigationController class]]) {
+        rootWindow.rootViewController = self;
+    } else {
+        UINavigationController *rootNC = [[UINavigationController fs_defaultNavigationControllerClass] fs_newController];
+        rootNC.viewControllers = @[self];
+        rootWindow.rootViewController = rootNC;
+    }
 }
 
 + (instancetype)fs_topViewController

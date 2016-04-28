@@ -161,6 +161,7 @@ typedef enum : int {
     NSUInteger currentPage = self.currentPage;
     self.currentPage = page;
     self.request.errorHidden = page == 0;
+    self.request.cachePolicy = self.response ? FSRequestCachePolicyNetworkOnly : FSRequestCachePolicyCacheThenNetwork;
     
     if ([self.childController respondsToSelector:@selector(requestControllerWillStartRequest:)]) {
         [self.childController requestControllerWillStartRequest:self];
@@ -200,7 +201,11 @@ typedef enum : int {
         if (self.viewNoHidden || page > 0) {
             self.contentMode = FSRequestContentModeNormal;
         } else if (response.error) {
-            [self setContentMode:FSRequestContentModeError withInfo:response.error.localizedDescription];
+            if (!self.response) {
+                [self setContentMode:FSRequestContentModeError withInfo:response.error.localizedDescription];
+            } else {
+                
+            }
         } else {
             if ([self.childView isKindOfClass:[UITableView class]]) {
                 UITableView *tableView = (UITableView *)self.childView;

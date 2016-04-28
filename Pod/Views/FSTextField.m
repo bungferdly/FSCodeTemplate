@@ -100,7 +100,9 @@
     self.dateFormatter.dateFormat = self.dateFormat;
     self.dateFormatter.locale = self.datePicker.locale;
     
-    self.date = self.datePicker.date;
+    if (self.autoFill) {
+        self.date = self.datePicker.date;
+    }
 }
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
@@ -122,13 +124,16 @@
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField
 {
-    self.datePicker.date = [self.dateFormatter dateFromString:self.text];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.datePicker.date = [self.dateFormatter dateFromString:self.text] ?: [NSDate date];
+    });
 }
 
 - (void)inputViewDidChangeValue
 {
     if (self.isFirstResponder) {
         self.date = self.datePicker.date;
+        [self sendActionsForControlEvents:UIControlEventEditingChanged];
     }
 }
 

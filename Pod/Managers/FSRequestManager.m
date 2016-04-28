@@ -139,22 +139,26 @@
             for (NSString *key in self.errorMessageComplexKeys) {
                 id error = [(NSDictionary *)data fs_valueForJSONComplexKey:key];
                 if (error) {
-                    if ([error isKindOfClass:[NSArray class]]) {
-                        error = [(NSArray *)error componentsJoinedByString:@"\n"];
+                    if (![error isKindOfClass:[NSString class]]) {
+                        error = [error description];
                     }
                     response.error = [NSError errorWithDomain:NSCocoaErrorDomain
                                                          code:operation.response.statusCode
                                                      userInfo:@{NSLocalizedDescriptionKey : error}];
+                    break;
                 }
             }
         } else {
             response.error = nil;
         }
         if (!response.error && data) {
-            for (NSString *key in self.resultCompexKeys) {
-                id newData = [(NSDictionary *)data fs_valueForJSONComplexKey:key];
-                if (newData) {
-                    data = newData;
+            if ([data isKindOfClass:[NSDictionary class]]) {
+                for (NSString *key in self.resultCompexKeys) {
+                    id newData = [(NSDictionary *)data fs_valueForJSONComplexKey:key];
+                    if (newData) {
+                        data = newData;
+                        break;
+                    }
                 }
             }
             response.object = data;
@@ -347,8 +351,8 @@
                 for (NSString *key in self.errorMessageComplexKeys) {
                     newError = [errDetailsDict fs_valueForJSONComplexKey:key];
                     if (newError) {
-                        if ([newError isKindOfClass:[NSArray class]]) {
-                            newError = [(NSArray *)newError componentsJoinedByString:@"\n"];
+                        if (![newError isKindOfClass:[NSString class]]) {
+                            newError = [newError description];
                         }
                         error = [NSError errorWithDomain:NSCocoaErrorDomain
                                                     code:error.code

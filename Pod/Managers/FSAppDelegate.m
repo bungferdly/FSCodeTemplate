@@ -9,6 +9,7 @@
 #import "FSAppDelegate.h"
 #import "FSManager.h"
 #import "FSResponderManager.h"
+#import "FSAccountManager.h"
 
 #ifdef FS_SUBSPEC_NOTIFICATION
     #import "FSNotificationManager.h"

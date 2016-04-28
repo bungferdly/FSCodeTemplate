@@ -20,6 +20,7 @@
 @interface FSDateTextField : FSTextField
 
 @property (strong, nonatomic) IBInspectable NSString *dateFormat;
+@property (assign, nonatomic) IBInspectable BOOL autoFill;
 @property (strong, nonatomic) IBOutlet UIDatePicker *datePicker;
 @property (strong, nonatomic) NSDate *date;
 

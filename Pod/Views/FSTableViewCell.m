@@ -23,6 +23,8 @@
 {
     [super awakeFromNib];
     
+    self.backgroundColor = self.backgroundColor;
+    
     if (self.selectionStyle != UITableViewCellSelectionStyleNone) {
         
         self.highlightView = [[UIView alloc] initWithFrame:self.bounds];

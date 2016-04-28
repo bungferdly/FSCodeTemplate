@@ -39,4 +39,8 @@
 #import "FSTextField.h"
 #import "FSLayoutConstraint.h"
 
+#ifdef FS_SUBSPEC_NOTIFICATION
+    #import "FSNotificationManager.h"
+#endif
+
 #endif

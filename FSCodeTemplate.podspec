@@ -8,46 +8,36 @@
 
 Pod::Spec.new do |s|
   s.name             = "FSCodeTemplate"
-  s.version          = "0.1.1"
-  s.summary          = "Test code template. For personal use only."
-
-# This description is used to generate tags and improve search results.
-#   * Think: What does it do? Why did you write it? What is the focus?
-#   * Try to keep it short, snappy and to the point.
-#   * Write the description between the DESC delimiters below.
-#   * Finally, don't worry about the indent, CocoaPods strips it!  
-  s.description      = <<-DESC
-For now it only consist of : 
-- FSManager, include sharedManager, UIApplicationDelegate, add & remove delegate so you dont have to write it all over in every manager
-- FSAppDelegate, throws all UIApplicationDelegate work to RCManagers
-- UIViewController additional methods
-- FSAPIRequestManager, do RESTful a clean way. It has built in retrying, caching, parsing JSON to MTLModel, and error handling so you dont have to write it all over again in every places
-                       DESC
-
+  s.version          = "0.1.2"
+  s.summary          = "My own library to be used in every new project."
   s.homepage         = "https://github.com/bungferdly/FSCodeTemplate"
-  # s.screenshots     = "www.example.com/screenshots_1", "www.example.com/screenshots_2"
   s.license          = 'MIT'
   s.author           = { "Ferdly Sethio" => "bungferdly@gmail.com" }
   s.source           = { :git => "https://github.com/bungferdly/FSCodeTemplate.git", :tag => s.version.to_s }
-  # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
+  s.platform         = :ios, '7.0'
+  s.requires_arc     = true
+  s.default_subspec  = 'Root'
 
-  s.platform     = :ios, '7.0'
-  s.requires_arc = true
+  s.subspec 'Root' do |sp|
+    sp.source_files  = 'Pod/**/*.{h,m}'
+    sp.resources     = 'Pod/Resources/**/*'
+  
+    sp.dependency 'AFNetworking', '2.6.2'
+    sp.dependency 'SVProgressHUD'
+    sp.dependency 'JSONModel'
+    sp.dependency 'NSURL+QueryDictionary'
+    sp.dependency 'FXKeychain'
+    sp.dependency 'TMCache'
+    sp.dependency 'UIAlertController+Blocks'
+    sp.dependency 'UIAlertView+Blocks'
+    sp.dependency 'UIActionSheet+Blocks'
+    sp.dependency 'SDWebImage'
+    sp.dependency 'DTCoreText'
+  end
 
-  s.source_files = 'Pod/**/*.{h,m}'
-  s.resources    = 'Pod/Resources/**/*'
+  s.subspec 'Notification' do |sp|
+    sp.source_files = 'PodNotification/*.{h,m}'
+    sp.xcconfig     = {"GCC_PREPROCESSOR_DEFINITIONS" => "FS_SUBSPEC_NOTIFICATION"}
+  end
 
-  # s.public_header_files = 'Pod/**/*.h'
-  # s.frameworks = 'UIKit', 'MapKit'
-  s.dependency 'AFNetworking', '2.6.2'
-  s.dependency 'SVProgressHUD'
-  s.dependency 'JSONModel'
-  s.dependency 'NSURL+QueryDictionary'
-  s.dependency 'FXKeychain'
-  s.dependency 'TMCache'
-  s.dependency 'UIAlertController+Blocks'
-  s.dependency 'UIAlertView+Blocks'
-  s.dependency 'UIActionSheet+Blocks'
-  s.dependency 'SDWebImage'
-  s.dependency 'DTCoreText'
 end

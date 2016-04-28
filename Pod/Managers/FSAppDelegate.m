@@ -10,11 +10,21 @@
 #import "FSManager.h"
 #import "FSResponderManager.h"
 
+#ifdef FS_SUBSPEC_NOTIFICATION
+    #import "FSNotificationManager.h"
+#endif
+
 @implementation FSAppDelegate
 
 - (void)initializeManagers
 {
     [FSResponderManager sharedManager];
+    [[FSAccountManager sharedManager] addDelegate:self];
+    
+#ifdef FS_SUBSPEC_NOTIFICATION
+    [FSNotificationManager sharedManager];
+#endif
+    
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -74,6 +84,8 @@
     }
 }
 
+#ifdef FS_SUBSPEC_NOTIFICATION
+
 - (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
 {
     for (FSManager *manager in [FSManager allManagers]) {
@@ -109,6 +121,8 @@
         }
     }
 }
+
+#endif
 
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
 {

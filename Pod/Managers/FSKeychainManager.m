@@ -24,7 +24,6 @@ NSString * const FSKeychainInstalled = @"FSKeychainInstalled";
 
 - (void)didLoad
 {
-    self.keys = [[NSMutableArray alloc] initWithArray:[self objectForKey:FSKeychainKeys]];
     [[FSAccountManager sharedManager] addDelegate:self];
 }
 
@@ -32,6 +31,7 @@ NSString * const FSKeychainInstalled = @"FSKeychainInstalled";
 {
     if (!_keychain) {
         _keychain = [FXKeychain defaultKeychain];
+        self.keys = [[NSMutableArray alloc] initWithArray:[self objectForKey:FSKeychainKeys]];
         if (![[NSUserDefaults standardUserDefaults] boolForKey:FSKeychainInstalled]) {
             [self removeAllObjects];
             [[NSUserDefaults standardUserDefaults] setBool:YES forKey:FSKeychainInstalled];

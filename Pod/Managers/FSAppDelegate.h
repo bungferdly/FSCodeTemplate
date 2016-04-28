@@ -8,7 +8,9 @@
 
 #import <UIKit/UIKit.h>
 
-@interface FSAppDelegate : UIResponder <UIApplicationDelegate>
+@protocol FSAccountManagerDelegate;
+
+@interface FSAppDelegate : UIResponder <UIApplicationDelegate, FSAccountManagerDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 

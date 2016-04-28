@@ -64,6 +64,11 @@
     return YES;
 }
 
+- (BOOL)textFieldShouldReturn:(UITextField *)textField
+{
+    return YES;
+}
+
 - (CGRect)textRectForBounds:(CGRect)bounds
 {
     return CGRectInset(bounds, self.textPadding.x, self.textPadding.y);

@@ -30,6 +30,7 @@ typedef enum : int {
 @property (strong, nonatomic) UIRefreshControl *refreshControl;
 @property (weak, nonatomic) UIViewController<FSRequestControllerDelegate> *childController;
 @property (weak, nonatomic) UIScrollView *childView;
+@property (assign, nonatomic) UITableViewCellSeparatorStyle separatorStyle;
 
 @end
 
@@ -88,7 +89,7 @@ typedef enum : int {
     
     id vc = self.childController;
     if (FSKindOf([vc view], UIScrollView)) {
-        self.childView = [vc view];
+        self.childView = (UIScrollView *)[vc view];
     } else {
         [[vc view] fs_subviewsMapping:^(UIView *view, BOOL *stop) {
             if (FSKindOf(view, UIScrollView)) {
@@ -105,6 +106,7 @@ typedef enum : int {
     } else {
         [self.childView insertSubview:self.refreshControl atIndex:0];
     }
+    self.separatorStyle = FSKindOf(self.childView, UITableView).separatorStyle;
     
     self.view.backgroundColor = self.childController.view.backgroundColor;
     
@@ -268,12 +270,14 @@ typedef enum : int {
     }
     self.childController.view.hidden = (mode == FSRequestContentModeError && self.errorView.reloadButton) ||
                                         (mode == FSRequestContentModeEmpty && self.emptyView.reloadButton);
+    FSKindOf(self.childView, UITableView).separatorStyle = mode == FSRequestContentModeNormal ? self.separatorStyle : UITableViewCellSeparatorStyleNone;
 }
 
 - (FSRequestView *)errorView
 {
-    if (!_errorView && __fsDefaultErrorNIBName) {
-        _errorView = [[[NSBundle mainBundle] loadNibNamed:__fsDefaultErrorNIBName owner:self options:nil] firstObject];
+    if (!_errorView) {
+        NSString *nibName = __fsDefaultErrorNIBName ?: @"FSErrorView";
+        _errorView = [[[NSBundle mainBundle] loadNibNamed:nibName owner:self options:nil] firstObject];
         _errorView.frame = self.view.bounds;
         _errorView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         [_errorView.reloadButton addTarget:self action:@selector(requestData) forControlEvents:UIControlEventTouchUpInside];
@@ -284,8 +288,9 @@ typedef enum : int {
 
 - (FSRequestView *)emptyView
 {
-    if (!_emptyView && __fsDefaultEmptyNIBName) {
-        _emptyView = [[[NSBundle mainBundle] loadNibNamed:__fsDefaultEmptyNIBName owner:self options:nil] firstObject];
+    if (!_emptyView) {
+        NSString *nibName = __fsDefaultEmptyNIBName ?: @"FSEmptyView";
+        _emptyView = [[[NSBundle mainBundle] loadNibNamed:nibName owner:self options:nil] firstObject];
         _emptyView.frame = self.view.bounds;
         _emptyView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         [_emptyView.reloadButton addTarget:self action:@selector(requestData) forControlEvents:UIControlEventTouchUpInside];

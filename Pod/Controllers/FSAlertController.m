@@ -11,6 +11,7 @@
 #import <UIAlertController+Blocks/UIAlertController+Blocks.h>
 #import <UIAlertView+Blocks/UIAlertView+Blocks.h>
 #import <UIActionSheet+Blocks/UIActionSheet+Blocks.h>
+#import <SVProgressHUD/SVProgressHUD.h>
 
 Class __fsDefaultAlertControllerClass = nil;
 
@@ -23,6 +24,11 @@ Class __fsDefaultAlertControllerClass = nil;
 @end
 
 @implementation FSAlertController
+
++ (void)initialize
+{
+    [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeBlack];
+}
 
 + (void)setAsDefaultAlertController
 {
@@ -119,6 +125,29 @@ Class __fsDefaultAlertControllerClass = nil;
     });
     
     return alertController;
+}
+
++ (instancetype)showSuccessWithStatus:(NSString *)status
+{
+    [SVProgressHUD showSuccessWithStatus:status];
+    return nil;
+}
+
++ (instancetype)showLoadingWithStatus:(NSString *)status
+{
+    [SVProgressHUD showWithStatus:status];
+    return nil;
+}
+
++ (instancetype)showErrorWithStatus:(NSString *)status
+{
+    [SVProgressHUD showErrorWithStatus:status];
+    return nil;
+}
+
++ (void)dismiss
+{
+    [SVProgressHUD dismiss];
 }
 
 @end

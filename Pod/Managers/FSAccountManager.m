@@ -18,6 +18,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         self.loggedIn = [FSKeychainLoad(FSRequestManagerLoggedIn) boolValue];
     });
+    return YES;
 }
 
 - (void)setLoggedIn:(BOOL)loggedIn

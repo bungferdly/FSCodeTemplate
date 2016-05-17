@@ -335,13 +335,13 @@
 {
     for (FSRequest *request in self.requests) {
         if (request.operation.isExecuting && request.hudTitle) {
-            [SVProgressHUD showWithStatus:NSLocalizedString(request.hudTitle, nil) maskType:SVProgressHUDMaskTypeBlack];
+            [FSAlertController showLoadingWithStatus:NSLocalizedString(request.hudTitle, nil)];
             return;
         }
     }
     if (req.response.error) {
         if (req.retryCount >= 0 && !req.errorHidden) {
-            [SVProgressHUD dismiss];
+            [FSAlertController dismiss];
             
             NSError *error = req.response.error;
             NSData *errDetails = error.userInfo[@"com.alamofire.serialization.response.error.data"];
@@ -381,11 +381,11 @@
         req.response = nil;
         return;
     } else if (req.hudSuccessTitle) {
-        [SVProgressHUD showSuccessWithStatus:NSLocalizedString(req.hudSuccessTitle, nil) maskType:SVProgressHUDMaskTypeBlack];
+        [FSAlertController showSuccessWithStatus:NSLocalizedString(req.hudSuccessTitle, nil)];
         return;
     }
     if (req.hudTitle && req.retrying >= req.retryCount) {
-        [SVProgressHUD dismiss];
+        [FSAlertController dismiss];
     }
     req.response = nil;
 }

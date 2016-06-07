@@ -96,9 +96,13 @@
 - (CGSize)intrinsicContentSize
 {
     if (self.htmlView) {
+        static Class contentSizeClass = nil;
+        if (!contentSizeClass) {
+            contentSizeClass = NSClassFromString(@"NSContentSizeLayoutConstraint");
+        }
         CGFloat currentWidth = 0;
         for (NSLayoutConstraint *c in self.constraints) {
-            if (c.firstAttribute == NSLayoutAttributeWidth) {
+            if (c.firstAttribute == NSLayoutAttributeWidth && ![c isKindOfClass:contentSizeClass]) {
                 currentWidth = self.frame.size.width;
                 break;
             }
